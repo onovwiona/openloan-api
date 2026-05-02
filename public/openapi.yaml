@@ -1,0 +1,762 @@
+openapi: 3.0.3
+info:
+  title: OpenDoor API
+  description: Complete API for the OpenDoor fintech platform including user management, loans, accounts, and financial operations
+  version: 1.0.0
+  contact:
+    name: OpenDoor API Support
+    email: support@opendoor.com
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local development server
+  - url: https://api.opendoor.com/v1
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /register:
+    post:
+      summary: Register a new user
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /login:
+    post:
+      summary: Authenticate user and get access token
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /logout:
+    post:
+      summary: Logout user and invalidate token
+      tags: [Authentication]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /refresh:
+    post:
+      summary: Refresh access token
+      tags: [Authentication]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /me:
+    get:
+      summary: Get current user profile
+      tags: [Users]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /kyc/upload:
+    post:
+      summary: Upload KYC document
+      tags: [KYC]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                document_type:
+                  type: string
+                  enum: [id_card, passport, proof_of_address]
+                document:
+                  type: string
+                  format: binary
+                  description: The document file to upload
+      responses:
+        '200':
+          description: Document uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KycUploadResponse'
+
+  /kyc/status:
+    get:
+      summary: Get KYC verification status
+      tags: [KYC]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: KYC status retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KycStatusResponse'
+
+  /account-types:
+    get:
+      summary: List account types
+      tags: [Account Types]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Account types retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountType'
+    post:
+      summary: Create account type
+      tags: [Account Types]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountTypeRequest'
+      responses:
+        '201':
+          description: Account type created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountType'
+
+  /accounts:
+    get:
+      summary: List user accounts
+      tags: [Accounts]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Accounts retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Account'
+    post:
+      summary: Create new account
+      tags: [Accounts]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountRequest'
+      responses:
+        '201':
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+
+  /accounts/{account_id}/debit:
+    post:
+      summary: Debit from account
+      tags: [Accounts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+      responses:
+        '200':
+          description: Debit successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+
+  /accounts/{account_id}/credit:
+    post:
+      summary: Credit to account
+      tags: [Accounts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+      responses:
+        '200':
+          description: Credit successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+
+  /loan-products:
+    get:
+      summary: List loan products
+      tags: [Loans]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Loan products retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LoanProduct'
+
+  /loans:
+    get:
+      summary: List user loans
+      tags: [Loans]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Loans retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Loan'
+    post:
+      summary: Apply for loan
+      tags: [Loans]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanApplicationRequest'
+      responses:
+        '201':
+          description: Loan application submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Loan'
+
+  /loans/{loan_id}/approve:
+    post:
+      summary: Approve loan application
+      tags: [Loans]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: loan_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Loan approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Loan'
+
+  /loans/{loan_id}/disburse:
+    post:
+      summary: Disburse approved loan
+      tags: [Loans]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: loan_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Loan disbursed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Loan'
+
+  /ledger/trial-balance:
+    get:
+      summary: Get trial balance
+      tags: [Ledger]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Trial balance retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrialBalanceResponse'
+
+  /ledger/close-day:
+    post:
+      summary: Close daily books
+      tags: [Ledger]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Day closed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /audit-logs:
+    get:
+      summary: Get audit logs
+      tags: [Audit]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Audit logs retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuditLog'
+
+  /fraud-flags:
+    get:
+      summary: Get fraud flags
+      tags: [Fraud]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Fraud flags retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FraudFlag'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - first_name
+        - last_name
+        - email
+        - phone
+        - password
+        - password_confirmation
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        password:
+          type: string
+          minLength: 8
+        password_confirmation:
+          type: string
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+            access_token:
+              type: string
+            token_type:
+              type: string
+              enum: [bearer]
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        roles:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+
+    KycUploadResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            document_id:
+              type: string
+            document_type:
+              type: string
+            status:
+              type: string
+            uploaded_at:
+              type: string
+              format: date-time
+
+    KycStatusResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            kyc_status:
+              type: string
+              enum: [pending, approved, rejected]
+            documents:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  type:
+                    type: string
+                  status:
+                    type: string
+                  uploaded_at:
+                    type: string
+                    format: date-time
+
+    AccountType:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        interest_rate:
+          type: number
+        minimum_balance:
+          type: number
+
+    AccountTypeRequest:
+      type: object
+      required:
+        - name
+        - description
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        interest_rate:
+          type: number
+        minimum_balance:
+          type: number
+
+    Account:
+      type: object
+      properties:
+        id:
+          type: string
+        account_number:
+          type: string
+        balance:
+          type: number
+        account_type:
+          $ref: '#/components/schemas/AccountType'
+
+    AccountRequest:
+      type: object
+      required:
+        - account_type_id
+      properties:
+        account_type_id:
+          type: string
+
+    TransactionRequest:
+      type: object
+      required:
+        - amount
+        - description
+      properties:
+        amount:
+          type: number
+        description:
+          type: string
+        reference:
+          type: string
+
+    TransactionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            transaction_id:
+              type: string
+            balance:
+              type: number
+
+    LoanProduct:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        min_amount:
+          type: number
+        max_amount:
+          type: number
+        interest_rate:
+          type: number
+        term_months:
+          type: integer
+
+    Loan:
+      type: object
+      properties:
+        id:
+          type: string
+        amount:
+          type: number
+        interest_rate:
+          type: number
+        term_months:
+          type: integer
+        status:
+          type: string
+          enum: [pending, approved, disbursed, repaid, defaulted]
+
+    LoanApplicationRequest:
+      type: object
+      required:
+        - loan_product_id
+        - amount
+        - term_months
+      properties:
+        loan_product_id:
+          type: string
+        amount:
+          type: number
+        term_months:
+          type: integer
+
+    TrialBalanceResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            total_debit:
+              type: number
+            total_credit:
+              type: number
+            is_balanced:
+              type: boolean
+            accounts:
+              type: array
+              items:
+                type: object
+                properties:
+                  account:
+                    type: string
+                  debit:
+                    type: number
+                  credit:
+                    type: number
+
+    AuditLog:
+      type: object
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        action:
+          type: string
+        resource:
+          type: string
+        resource_id:
+          type: string
+        changes:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+
+    FraudFlag:
+      type: object
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        type:
+          type: string
+        severity:
+          type: string
+          enum: [low, medium, high]
+        description:
+          type: string
+        flagged_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [active, resolved]
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+        error:
+          type: string
+        errors:
+          type: object

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenDoor Backend API Documentation</title>
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --surface: #1a1a1a;
+            --surface-alt: #2a2a2a;
+            --text: #f0f0f0;
+            --text-dim: #a0a0a0;
+            --accent: #4f46e5;
+            --accent-hover: #3730a3;
+            --border: #333;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg); 
+            color: var(--text); 
+            line-height: 1.6; 
+            padding: 2rem; 
+            max-width: 1200px; 
+            margin: 0 auto;
+        }
+        h1 { text-align: center; margin-bottom: 3rem; color: var(--accent); }
+        .section { margin-bottom: 2rem; }
+        .accordion { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+        .accordion-header { 
+            background: var(--surface); 
+            padding: 1.5rem; 
+            cursor: pointer; 
+            font-weight: 600; 
+            font-size: 1.2rem; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            transition: background 0.2s;
+        }
+        .accordion-header:hover { background: var(--surface-alt); }
+        .accordion-header::after { content: '+'; font-size: 1.5rem; transition: transform 0.2s; }
+        .accordion-header.active::after { transform: rotate(45deg); }
+        .accordion-content { 
+            max-height: 0; 
+            overflow: hidden; 
+            background: var(--surface-alt); 
+            transition: max-height 0.3s ease-out; 
+        }
+        .accordion-content.active { max-height: 2000px; padding: 1.5rem; }
+        .endpoint { display: flex; gap: 1rem; margin-bottom: 0.5rem; padding: 0.75rem; background: var(--surface); border-radius: 8px; }
+        .method { background: var(--accent); color: white; padding: 0.25rem 0.75rem; border-radius: 6px; font-family: monospace; font-weight: bold; }
+        .path { font-family: monospace; color: var(--text); flex: 1; }
+        .desc { color: var(--text-dim); font-size: 0.95rem; }
+        @media (max-width: 768px) { body { padding: 1rem; } .endpoint { flex-direction: column; gap: 0.25rem; } }
+    </style>
+</head>
+<body>
+    <h1>🗝️ OpenDoor Backend API v1 Documentation</h1>
+    <p style="text-align: center; color: var(--text-dim); margin-bottom: 1rem;">All endpoints under <code>/api/v1</code>. Auth via JWT Bearer token. <strong>Hit a 404? Check your role access!</strong></p>
+    <p style="text-align: center; margin-bottom: 3rem;">
+        <a href="lifecycle.html" style="color: var(--accent); text-decoration: none; font-weight: bold; padding: 0.75rem 1.5rem; border: 2px solid var(--accent); border-radius: 8px; transition: all 0.2s;">
+            🚀 View Complete Lifecycle Experience
+        </a>
+        <a href="openapi.yaml" style="color: var(--accent); text-decoration: none; font-weight: bold; padding: 0.75rem 1.5rem; border: 2px solid var(--accent); border-radius: 8px; transition: all 0.2s; margin-left: 1rem;">
+            📋 OpenAPI Specification
+        </a>
+    </p>
+
+    <!-- Public -->
+    <div class="section">
+        <h2>🌍 Public Endpoints (No Auth)</h2>
+        <div class="accordion">
+            <div class="accordion-header">Public Authentication</div>
+            <div class="accordion-content">
+                <div class="endpoint">
+                    <span class="method">POST</span>
+                    <span class="path">/register</span>
+                    <span class="desc">Register new user (assigns customer role)</span>
+                </div>
+                <div class="endpoint">
+                    <span class="method">POST</span>
+                    <span class="path">/login</span>
+                    <span class="desc">Login with email/phone + password, returns JWT</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin -->
+    <div class="section">
+        <h2>👑 Admin (Super Administrator - Full Access)</h2>
+        <div class="accordion">
+            <div class="accordion-header">User & Role Management</div>
+            <div class="accordion-content">
+                <div class="endpoint"><span class="method">GET/POST/PUT/DELETE</span><span class="path">/users/{id}</span><span class="desc">CRUD users (apiResource)</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/users/{user}/roles</span><span class="desc">Get user roles</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/users/{user}/roles</span><span class="desc">Assign roles to user</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/users/{user}/customer-profile</span><span class="desc">View customer profile</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/users/{user}/employee-profile</span><span class="desc">View employee profile</span></div>
+                <div class="endpoint"><span class="method">GET/POST/PUT/DELETE</span><span class="path">/roles/{id}</span><span class="desc">CRUD roles</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/roles/{role}/users</span><span class="desc">Users with role</span></div>
+            </div>
+        </div>
+        <div class="accordion">
+            <div class="accordion-header">Audit Logs</div>
+            <div class="accordion-content">
+                <div class="endpoint"><span class="method">GET/POST/PUT/DELETE</span><span class="path">/audit-logs/{id}</span><span class="desc">CRUD audit logs</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/audit-logs/entity/{type}/{id}</span><span class="desc">Logs for entity</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/audit-logs/user/{id}</span><span class="desc">User logs</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Staff -->
+    <div class="section">
+        <h2>🏢 Staff / Office / Secretary</h2>
+        <div class="accordion">
+            <div class="accordion-header">Customer & Employee Management</div>
+            <div class="accordion-content">
+                <div class="endpoint"><span class="method">GET/POST/PUT/DELETE</span><span class="path">/customer-profiles/{id}</span><span class="desc">CRUD customer profiles</span></div>
+                <div class="endpoint"><span class="method">GET/POST/PUT/DELETE</span><span class="path">/employee-profiles/{id}</span><span class="desc">CRUD employee profiles</span></div>
+                <div class="endpoint"><span class="method">GET/POST/PUT/DELETE</span><span class="path">/customer-attributions/{id}</span><span class="desc">CRUD attributions</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/customer-attributions/by-source-user/{id}</span><span class="desc">Attributions by source user</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Marketer -->
+    <div class="section">
+        <h2>📈 Marketers</h2>
+        <div class="accordion">
+            <div class="accordion-header">Referral System</div>
+            <div class="accordion-content">
+                <div class="endpoint"><span class="method">GET/POST/PUT/DELETE</span><span class="path">/referral-codes/{id}</span><span class="desc">CRUD referral codes</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/referral-codes/validate</span><span class="desc">Validate code</span></div>
+                <div class="endpoint"><span class="method">GET/POST/PUT/DELETE</span><span class="path">/referral-edges/{id}</span><span class="desc">CRUD referral edges</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/referral-edges/{id}/referrals</span><span class="desc">User referrals</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/referral-edges/{id}/referrer</span><span class="desc">User referrer</span></div>
+                <div class="endpoint"><span class="method">GET/POST/PUT/DELETE</span><span class="path">/referral-paths/{id}</span><span class="desc">CRUD referral paths</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Risk/Auditor -->
+    <div class="section">
+        <h2>🛡️ Risk / Fraud / Compliance (Auditor, Staff)</h2>
+        <div class="accordion">
+            <div class="accordion-header">Security & Fraud</div>
+            <div class="accordion-content">
+                <div class="endpoint"><span class="method">GET/POST/PUT/DELETE</span><span class="path">/signup-attempts/{id}</span><span class="desc">CRUD signup attempts</span></div>
+                <div class="endpoint"><span class="method">GET/POST/PUT/DELETE</span><span class="path">/fraud-flags/{id}</span><span class="desc">CRUD fraud flags</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/fraud-flags/{id}/resolve</span><span class="desc">Resolve flag</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Finance -->
+    <div class="section">
+        <h2>💰 Finance / Commissions (Auditor)</h2>
+        <div class="accordion">
+            <div class="accordion-header">Commission Management</div>
+            <div class="accordion-content">
+                <div class="endpoint"><span class="method">GET/POST/PUT/DELETE</span><span class="path">/commission-rules/{id}</span><span class="desc">CRUD rules</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/commission-rules/{id}/activate</span><span class="desc">Activate rule</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/commission-rules/{id}/deactivate</span><span class="desc">Deactivate rule</span></div>
+                <div class="endpoint"><span class="method">GET/POST/PUT/DELETE</span><span class="path">/commission-events/{id}</span><span class="desc">CRUD events</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/commission-events/{id}/approve</span><span class="desc">Approve event</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/commission-events/{id}/mark-paid</span><span class="desc">Mark as paid</span></div>
+                <div class="endpoint"><span class="method">GET/POST/PUT/DELETE</span><span class="path">/commission-payout-batches/{id}</span><span class="desc">CRUD batches</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/commission-payout-batches/{id}/process</span><span class="desc">Process batch</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/commission-payout-batches/{id}/complete</span><span class="desc">Complete batch</span></div>
+                <div class="endpoint"><span class="method">GET/POST/PUT/DELETE</span><span class="path">/commission-payout-items/{id}</span><span class="desc">CRUD items</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/commission-payout-items/{id}/mark-paid</span><span class="desc">Mark item paid</span></div>
+            </div>
+        </div>
+    </div>
+
+<!-- Ledger -->
+    <div class="section">
+        <h2>📒 Ledger (Double-Entry Accounting)</h2>
+        <div class="accordion">
+            <div class="accordion-header">Ledger Accounts</div>
+            <div class="accordion-content">
+                <div class="endpoint"><span class="method">GET</span><span class="path">/ledgers</span><span class="desc">List all ledger accounts</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/ledgers</span><span class="desc">Create ledger account</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/ledgers/{id}</span><span class="desc">Get ledger account details</span></div>
+                <div class="endpoint"><span class="method">PUT</span><span class="path">/ledgers/{id}</span><span class="desc">Update ledger account</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/ledgers/{id}/transactions</span><span class="desc">Get account transactions</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/ledgers/{id}/statement</span><span class="desc">Get account statement</span></div>
+            </div>
+        </div>
+        <div class="accordion">
+            <div class="accordion-header">Trial Balance & General Ledger</div>
+            <div class="accordion-content">
+                <div class="endpoint"><span class="method">GET</span><span class="path">/ledger/trial-balance</span><span class="desc">Get trial balance report</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/ledger/gl</span><span class="desc">Get general ledger</span></div>
+            </div>
+        </div>
+        <div class="accordion">
+            <div class="accordion-header">Journal Entries</div>
+            <div class="accordion-content">
+                <div class="endpoint"><span class="method">GET</span><span class="path">/ledger/journals</span><span class="desc">List journal entries</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/ledger/journals</span><span class="desc">Create journal entry</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/ledger/journals/{id}</span><span class="desc">Get journal entry</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/ledger/journals/{id}/reverse</span><span class="desc">Reverse journal entry</span></div>
+            </div>
+        </div>
+        <div class="accordion">
+            <div class="accordion-header">Day Closing</div>
+            <div class="accordion-content">
+                <div class="endpoint"><span class="method">POST</span><span class="path">/ledger/close-day</span><span class="desc">Close the day</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/ledger/close-day</span><span class="desc">Check if day is closed</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accounts -->
+    <div class="section">
+        <h2>🏦 Accounts (Customer Accounts)</h2>
+        <div class="accordion">
+            <div class="accordion-header">Account Types</div>
+            <div class="accordion-content">
+                <div class="endpoint"><span class="method">GET</span><span class="path">/account-types</span><span class="desc">List account types</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/account-types/{id}</span><span class="desc">Get account type</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/account-types</span><span class="desc">Create account type</span></div>
+            </div>
+        </div>
+        <div class="accordion">
+            <div class="accordion-header">Accounts Management</div>
+            <div class="accordion-content">
+                <div class="endpoint"><span class="method">GET</span><span class="path">/accounts</span><span class="desc">List all accounts</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/accounts</span><span class="desc">Create account</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/accounts/{id}</span><span class="desc">Get account details</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/accounts/{id}/credit</span><span class="desc">Credit account</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/accounts/{id}/debit</span><span class="desc">Debit account</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/accounts/{id}/transfer</span><span class="desc">Transfer between accounts</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/accounts/{id}/transactions</span><span class="desc">Get account transactions</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/accounts/{id}/statement</span><span class="desc">Get account statement</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/accounts/{id}/freeze</span><span class="desc">Freeze account</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/accounts/{id}/unfreeze</span><span class="desc">Unfreeze account</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/accounts/{id}/close</span><span class="desc">Close account</span></div>
+            </div>
+        </div>
+        <div class="accordion">
+            <div class="accordion-header">My Accounts (Customer Self-Service)</div>
+            <div class="accordion-content">
+                <div class="endpoint"><span class="method">GET</span><span class="path">/users/{user_id}/accounts</span><span class="desc">Get user's accounts</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/users/{user_id}/accounts/{id}</span><span class="desc">Get user's account</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/users/{user_id}/accounts/{id}/statement</span><span class="desc">Get user's account statement</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loans -->
+    <div class="section">
+        <h2>💵 Loans (Loan Products & Applications)</h2>
+        <div class="accordion">
+            <div class="accordion-header">Loan Products</div>
+            <div class="accordion-content">
+                <div class="endpoint"><span class="method">GET</span><span class="path">/loan-products</span><span class="desc">List loan products</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/loan-products/{id}</span><span class="desc">Get loan product</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/loan-products</span><span class="desc">Create loan product</span></div>
+            </div>
+        </div>
+        <div class="accordion">
+            <div class="accordion-header">Loan Applications Management</div>
+            <div class="accordion-content">
+                <div class="endpoint"><span class="method">GET</span><span class="path">/loan-applications</span><span class="desc">List loan applications</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/loan-applications/{id}</span><span class="desc">Get loan application</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/loan-applications/{id}/approve</span><span class="desc">Approve application</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/loan-applications/{id}/reject</span><span class="desc">Reject application</span></div>
+            </div>
+        </div>
+        <div class="accordion">
+            <div class="accordion-header">Loans Management</div>
+            <div class="accordion-content">
+                <div class="endpoint"><span class="method">GET</span><span class="path">/loans</span><span class="desc">List all loans</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/loans/{id}</span><span class="desc">Get loan details</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/loans/{id}/disburse</span><span class="desc">Disburse loan</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/loans/{id}/repay</span><span class="desc">Record repayment</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/loans/{id}/schedule</span><span class="desc">Get repayment schedule</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/loans/{id}/restructure</span><span class="desc">Restructure loan</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/loans/{id}/writeoff</span><span class="desc">Write off loan</span></div>
+            </div>
+        </div>
+        <div class="accordion">
+            <div class="accordion-header">My Loans (Customer Self-Service)</div>
+            <div class="accordion-content">
+                <div class="endpoint"><span class="method">POST</span><span class="path">/loan-applications</span><span class="desc">Create loan application</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/loan-applications/{id}/submit</span><span class="desc">Submit application</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/loan-applications/{id}/cancel</span><span class="desc">Cancel application</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/users/{user_id}/loan-applications/</span><span class="desc">My applications</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/users/{user_id}/loan-applications/{id}</span><span class="desc">My application detail</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/users/{user_id}/loans/</span><span class="desc">My loans</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/users/{user_id}/loans/{id}</span><span class="desc">My loan detail</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer -->
+    <div class="section">
+        <h2>👤 Customer (Self-Service)</h2>
+        <div class="accordion">
+            <div class="accordion-header">Profile</div>
+            <div class="accordion-content">
+                <div class="endpoint"><span class="method">GET</span><span class="path">/my-profile</span><span class="desc">Get own profile + customerProfile</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Endpoints (all require auth) -->
+    <div class="section">
+        <h2>🔐 Auth Management (All Authenticated Users)</h2>
+        <div class="accordion">
+            <div class="accordion-header">Universal Auth</div>
+            <div class="accordion-content">
+                <div class="endpoint"><span class="method">POST</span><span class="path">/logout</span><span class="desc">Invalidate token</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/refresh</span><span class="desc">Refresh token</span></div>
+                <div class="endpoint"><span class="method">GET</span><span class="path">/me</span><span class="desc">Get authenticated user + roles/profiles</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.accordion-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const content = header.nextElementSibling;
+                const isActive = content.classList.contains('active');
+                document.querySelectorAll('.accordion-content').forEach(c => c.classList.remove('active'));
+                document.querySelectorAll('.accordion-header').forEach(h => h.classList.remove('active'));
+                if (!isActive) {
+                    content.classList.add('active');
+                    header.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

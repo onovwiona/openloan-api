@@ -1,0 +1,1854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenDoor API - Complete Lifecycle Experience</title>
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --surface: #1a1a1a;
+            --surface-alt: #2a2a2a;
+            --surface-hover: #3a3a3a;
+            --text: #f0f0f0;
+            --text-dim: #a0a0a0;
+            --text-muted: #888;
+            --accent: #4f46e5;
+            --accent-hover: #3730a3;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --border: #333;
+            --code-bg: #1e1e1e;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 1rem;
+            color: var(--accent);
+            font-size: 2.5rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-dim);
+            margin-bottom: 3rem;
+            font-size: 1.1rem;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 2rem;
+            color: var(--accent);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .back-link:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .breadcrumbs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-dim);
+            font-size: 0.95rem;
+        }
+
+        .breadcrumbs a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .breadcrumbs span {
+            color: var(--text-dim);
+        }
+
+        .section-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .section-nav a {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            color: var(--text);
+            text-decoration: none;
+            padding: 0.8rem 1rem;
+            border-radius: 999px;
+            transition: transform 0.2s, background 0.2s, border-color 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .section-nav a:hover {
+            background: var(--surface);
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+
+        .section-nav a.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .resources-accordion {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            background: var(--surface);
+        }
+
+        .resource-item {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .resource-item:last-child {
+            border-bottom: none;
+        }
+
+        .resource-header {
+            background: var(--surface-alt);
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            transition: background 0.2s;
+        }
+
+        .resource-header:hover {
+            background: var(--surface-hover);
+        }
+
+        .resource-header::after {
+            content: '+';
+            font-size: 1.25rem;
+            color: var(--accent);
+            transition: transform 0.2s;
+        }
+
+        .resource-item.active .resource-header::after {
+            transform: rotate(45deg);
+        }
+
+        .resource-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: var(--code-bg);
+        }
+
+        .resource-item.active .resource-body {
+            max-height: 1000px;
+            padding: 1rem 1.5rem 1.5rem;
+        }
+
+        .resource-list {
+            display: grid;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .resource-link {
+            display: inline-flex;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+
+        .resources-description {
+            color: var(--text-dim);
+            margin-top: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .lifecycle-container {
+            display: grid;
+            gap: 2rem;
+        }
+
+        .phase {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .phase::before {
+            content: attr(data-phase);
+            position: absolute;
+            top: -10px;
+            left: 2rem;
+            background: var(--accent);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .phase-header {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .phase-title {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+
+        .phase-description {
+            color: var(--text-dim);
+            font-size: 1rem;
+        }
+
+        .step {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--surface-alt);
+            border-radius: 8px;
+            border-left: 4px solid var(--accent);
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            gap: 1rem;
+        }
+
+        .step-number {
+            background: var(--accent);
+            color: white;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .step-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .step-role {
+            background: var(--success);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .step-role.admin { background: var(--error); }
+        .step-role.staff { background: var(--warning); }
+        .step-role.customer { background: var(--success); }
+        .step-role.marketer { background: #8b5cf6; }
+        .step-role.auditor { background: #06b6d4; }
+
+        .step-content {
+            margin-left: 3rem;
+        }
+
+        .endpoint {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: var(--code-bg);
+            border-radius: 6px;
+            align-items: center;
+        }
+
+        .method {
+            background: var(--accent);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-family: monospace;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .path {
+            font-family: monospace;
+            color: var(--text);
+            flex: 1;
+            font-size: 0.95rem;
+        }
+
+        .payload-section {
+            margin-top: 1rem;
+        }
+
+        .payload-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        .payload {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1rem;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            color: #d4d4d4;
+        }
+
+        .response {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+
+        .response.error {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--error);
+        }
+
+        .note {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--warning);
+            border-radius: 6px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .note-title {
+            font-weight: 600;
+            color: var(--warning);
+            margin-bottom: 0.5rem;
+        }
+
+        .scenario {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid #8b5cf6;
+            border-radius: 8px;
+        }
+
+        .scenario-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #8b5cf6;
+            margin-bottom: 1rem;
+        }
+
+        .flow-diagram {
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .flow-diagram h3 {
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        .flow-steps {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .flow-step {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            position: relative;
+        }
+
+        .flow-step::after {
+            content: '→';
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .flow-step:last-child::after {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .phase { padding: 1rem; }
+            .step-content { margin-left: 0; }
+            .endpoint { flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+            .flow-steps { flex-direction: column; align-items: center; }
+            .flow-step::after { content: '↓'; right: 50%; top: -15px; transform: translateX(50%); }
+        }
+
+        .json-key { color: #9cdcfe; }
+        .json-string { color: #ce9178; }
+        .json-number { color: #b5cea8; }
+        .json-boolean { color: #569cd6; }
+        .json-null { color: #569cd6; }
+    </style>
+</head>
+<body>
+    <a href="docs.html" class="back-link">← Back to API Documentation</a>
+
+    <h1>🚀 OpenDoor API - Complete Lifecycle Experience</h1>
+    <p class="subtitle">Step-by-step journey through the entire OpenDoor platform experience with real API payloads</p>
+
+    <div class="breadcrumbs">
+        <a href="docs.html">Docs</a>
+        <span>/</span>
+        <a href="lifecycle.html">Lifecycle Experience</a>
+    </div>
+
+    <div class="section-nav">
+        <a href="#phase-onboarding" class="active">Onboarding</a>
+        <a href="#phase-accounts">Accounts</a>
+        <a href="#phase-loans">Loans</a>
+        <a href="#phase-processing">Processing</a>
+        <a href="#phase-disbursement">Disbursement</a>
+        <a href="#phase-repayments">Repayments</a>
+        <a href="#phase-referrals">Referrals</a>
+        <a href="#phase-monitoring">Monitoring</a>
+        <a href="#phase-errors">Errors</a>
+    </div>
+
+    <div class="resources-accordion">
+        <div class="resource-item active">
+            <div class="resource-header">Onboarding Resources</div>
+            <div class="resource-body">
+                <p class="resources-description">Register, login, and profile retrieval endpoints used during customer onboarding.</p>
+                <div class="resource-list">
+                    <a class="resource-link" href="#phase-onboarding">/api/v1/register</a>
+                    <a class="resource-link" href="#phase-onboarding">/api/v1/login</a>
+                    <a class="resource-link" href="#phase-onboarding">/api/v1/me</a>
+                </div>
+            </div>
+        </div>
+        <div class="resource-item">
+            <div class="resource-header">Accounts Resources</div>
+            <div class="resource-body">
+                <p class="resources-description">Account type management, account creation, and customer account statements.</p>
+                <div class="resource-list">
+                    <a class="resource-link" href="#phase-accounts">/api/v1/account-types</a>
+                    <a class="resource-link" href="#phase-accounts">/api/v1/accounts</a>
+                    <a class="resource-link" href="#phase-accounts">/api/v1/users/{user_id}/accounts</a>
+                </div>
+            </div>
+        </div>
+        <div class="resource-item">
+            <div class="resource-header">Loans Resources</div>
+            <div class="resource-body">
+                <p class="resources-description">Loan products, applications, and customer self-service loan views.</p>
+                <div class="resource-list">
+                    <a class="resource-link" href="#phase-loans">/api/v1/loan-products</a>
+                    <a class="resource-link" href="#phase-loans">/api/v1/loan-applications</a>
+                    <a class="resource-link" href="#phase-loans">/api/v1/users/{user_id}/loan-applications</a>
+                </div>
+            </div>
+        </div>
+        <div class="resource-item">
+            <div class="resource-header">Processing Resources</div>
+            <div class="resource-body">
+                <p class="resources-description">Loan approval, rejection, and application review endpoints.</p>
+                <div class="resource-list">
+                    <a class="resource-link" href="#phase-processing">/api/v1/loan-applications?status=pending</a>
+                    <a class="resource-link" href="#phase-processing">/api/v1/loan-applications/{application_id}/approve</a>
+                    <a class="resource-link" href="#phase-processing">/api/v1/loan-applications/{application_id}/reject</a>
+                </div>
+            </div>
+        </div>
+        <div class="resource-item">
+            <div class="resource-header">Disbursement Resources</div>
+            <div class="resource-body">
+                <p class="resources-description">Ledger and loan disbursement endpoints for funding customer loans.</p>
+                <div class="resource-list">
+                    <a class="resource-link" href="#phase-disbursement">/api/v1/ledgers</a>
+                    <a class="resource-link" href="#phase-disbursement">/api/v1/loans/{loan_id}/disburse</a>
+                    <a class="resource-link" href="#phase-disbursement">/api/v1/loans/{loan_id}/schedule</a>
+                </div>
+            </div>
+        </div>
+        <div class="resource-item">
+            <div class="resource-header">Repayments Resources</div>
+            <div class="resource-body">
+                <p class="resources-description">Loan repayment posting, schedule retrieval, and customer loan status.</p>
+                <div class="resource-list">
+                    <a class="resource-link" href="#phase-repayments">/api/v1/loans/{loan_id}/repay</a>
+                    <a class="resource-link" href="#phase-repayments">/api/v1/users/{user_id}/loans</a>
+                    <a class="resource-link" href="#phase-repayments">/api/v1/users/{user_id}/loans/{id}</a>
+                </div>
+            </div>
+        </div>
+        <div class="resource-item">
+            <div class="resource-header">Referrals Resources</div>
+            <div class="resource-body">
+                <p class="resources-description">Referral code creation, validation, and commission payout workflow endpoints.</p>
+                <div class="resource-list">
+                    <a class="resource-link" href="#phase-referrals">/api/v1/referral-codes</a>
+                    <a class="resource-link" href="#phase-referrals">/api/v1/referral-codes/validate</a>
+                    <a class="resource-link" href="#phase-referrals">/api/v1/commission-rules</a>
+                </div>
+            </div>
+        </div>
+        <div class="resource-item">
+            <div class="resource-header">Monitoring Resources</div>
+            <div class="resource-body">
+                <p class="resources-description">Audit logs, trial balance, general ledger and daily closing endpoints for monitoring.</p>
+                <div class="resource-list">
+                    <a class="resource-link" href="#phase-monitoring">/api/v1/audit-logs</a>
+                    <a class="resource-link" href="#phase-monitoring">/api/v1/ledger/trial-balance</a>
+                    <a class="resource-link" href="#phase-monitoring">/api/v1/ledger/close-day</a>
+                </div>
+            </div>
+        </div>
+        <div class="resource-item">
+            <div class="resource-header">KYC & Fraud Resources</div>
+            <div class="resource-body">
+                <p class="resources-description">KYC document uploads, status checks, and fraud flag management endpoints.</p>
+                <div class="resource-list">
+                    <a class="resource-link" href="#phase-onboarding">/api/v1/kyc/upload</a>
+                    <a class="resource-link" href="#phase-onboarding">/api/v1/kyc/status</a>
+                    <a class="resource-link" href="#phase-errors">/api/v1/fraud-flags</a>
+                </div>
+            </div>
+        </div>
+        <div class="resource-item">
+            <div class="resource-header">Errors & Edge Cases</div>
+            <div class="resource-body">
+                <p class="resources-description">Example failure cases for rate limiting, permissions, validation, and account limits.</p>
+                <div class="resource-list">
+                    <a class="resource-link" href="#phase-errors">/api/v1/login</a>
+                    <a class="resource-link" href="#phase-errors">/api/v1/loan-products</a>
+                    <a class="resource-link" href="#phase-errors">/api/v1/accounts/{account_id}/debit</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flow-diagram">
+        <h3>🏦 Complete Customer Journey Flow</h3>
+        <div class="flow-steps">
+            <div class="flow-step">📝 Register</div>
+            <div class="flow-step">🔐 Login</div>
+            <div class="flow-step">📋 Create Account</div>
+            <div class="flow-step">💰 Apply for Loan</div>
+            <div class="flow-step">✅ Approval Process</div>
+            <div class="flow-step">💸 Disbursement</div>
+            <div class="flow-step">📅 Repayments</div>
+            <div class="flow-step">📊 Monitoring</div>
+        </div>
+    </div>
+
+    <div class="lifecycle-container">
+
+        <!-- PHASE 1: ONBOARDING -->
+        <div id="phase-onboarding" class="phase" data-phase="PHASE 1">
+            <div class="phase-header">
+                <h2 class="phase-title">🎯 Customer Onboarding & Authentication</h2>
+                <p class="phase-description">New customer registration, login, and initial profile setup</p>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">1</div>
+                    <div class="step-title">User Registration</div>
+                    <div class="step-role customer">Customer</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">POST</span>
+                        <span class="path">/api/v1/register</span>
+                    </div>
+                    <div class="payload-section">
+                        <div class="payload-title">Request Payload:</div>
+                        <div class="payload">{
+  "first_name": "John",
+  "last_name": "Doe",
+  "email": "john.doe@example.com",
+  "phone": "+1234567890",
+  "password": "securepassword123",
+  "password_confirmation": "securepassword123"
+}</div>
+                    </div>
+                    <div class="response">✅ <strong>Success Response (201):</strong>
+{
+  "success": true,
+  "message": "User registered successfully",
+  "data": {
+    "user": {
+      "id": "uuid-here",
+      "first_name": "John",
+      "last_name": "Doe",
+      "email": "john.doe@example.com",
+      "phone": "+1234567890",
+      "roles": [{"name": "customer"}]
+    },
+    "access_token": "jwt-token-here",
+    "token_type": "bearer",
+    "expires_in": 3600
+  }
+}</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">2</div>
+                    <div class="step-title">User Login</div>
+                    <div class="step-role customer">Customer</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">POST</span>
+                        <span class="path">/api/v1/login</span>
+                    </div>
+                    <div class="payload-section">
+                        <div class="payload-title">Request Payload:</div>
+                        <div class="payload">{
+  "email": "john.doe@example.com",
+  "password": "securepassword123"
+}</div>
+                    </div>
+                    <div class="response">✅ <strong>Success Response:</strong>
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "user": {
+      "id": "uuid-here",
+      "first_name": "John",
+      "last_name": "Doe",
+      "email": "john.doe@example.com",
+      "phone": "+1234567890",
+      "roles": [{"name": "customer"}]
+    },
+    "access_token": "jwt-token-here",
+    "token_type": "bearer",
+    "expires_in": 3600
+  }
+}</div>
+                    <div class="note">
+                        <div class="note-title">💡 Important:</div>
+                        <p>Use the <code>access_token</code> in the <code>Authorization: Bearer {token}</code> header for all subsequent requests.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Get User Profile</div>
+                    <div class="step-role customer">Customer</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">GET</span>
+                        <span class="path">/api/v1/me</span>
+                    </div>
+                    <div class="response">✅ <strong>Success Response:</strong>
+{
+  "success": true,
+  "data": {
+    "id": "user-uuid",
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "john.doe@example.com",
+    "phone": "+1234567890",
+    "customer_profile": null,
+    "roles": [{"name": "customer"}]
+  }
+}</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">4</div>
+                    <div class="step-title">Upload KYC Documents</div>
+                    <div class="step-role customer">Customer</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">POST</span>
+                        <span class="path">/api/v1/kyc/upload</span>
+                    </div>
+                    <div class="payload-section">
+                        <div class="payload-title">Request Payload (Form Data):</div>
+                        <div class="payload">document_type: "id_card"<br>document: [file]</div>
+                    </div>
+                    <div class="response">✅ <strong>Success Response:</strong>
+{
+  "success": true,
+  "message": "KYC document uploaded successfully",
+  "data": {
+    "document_id": "doc-uuid",
+    "document_type": "id_card",
+    "status": "pending",
+    "uploaded_at": "2024-01-15T10:30:00Z"
+  }
+}</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">5</div>
+                    <div class="step-title">Check KYC Status</div>
+                    <div class="step-role customer">Customer</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">GET</span>
+                        <span class="path">/api/v1/kyc/status</span>
+                    </div>
+                    <div class="response">✅ <strong>Success Response:</strong>
+{
+  "success": true,
+  "data": {
+    "kyc_status": "approved",
+    "documents": [
+      {
+        "id": "doc-uuid",
+        "type": "id_card",
+        "status": "approved",
+        "uploaded_at": "2024-01-15T10:30:00Z"
+      }
+    ]
+  }
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PHASE 2: ACCOUNT MANAGEMENT -->
+        <div id="phase-accounts" class="phase" data-phase="PHASE 2">
+            <div class="phase-header">
+                <h2 class="phase-title">🏦 Account Creation & Management</h2>
+                <p class="phase-description">Setting up customer accounts and account types</p>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Create Account Type (Admin)</div>
+                    <div class="step-role admin">Admin</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">POST</span>
+                        <span class="path">/api/v1/account-types</span>
+                    </div>
+                    <div class="payload-section">
+                        <div class="payload-title">Request Payload:</div>
+                        <div class="payload">{
+  "code": "SAVINGS",
+  "name": "Savings Account",
+  "currency": "USD",
+  "min_balance": 100.00,
+  "max_balance": 10000.00,
+  "allow_overdraft": false,
+  "accrues_interest": true,
+  "interest_rate": 2.5,
+  "description": "Standard savings account for customers"
+}</div>
+                    </div>
+                    <div class="response">✅ <strong>Success Response (201):</strong>
+{
+  "success": true,
+  "message": "Account type created",
+  "data": {
+    "id": "account-type-uuid",
+    "code": "SAVINGS",
+    "name": "Savings Account",
+    "currency": "USD",
+    "min_balance": 100.00,
+    "max_balance": 10000.00,
+    "allow_overdraft": false,
+    "accrues_interest": true,
+    "interest_rate": 2.5
+  }
+}</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">2</div>
+                    <div class="step-title">List Account Types</div>
+                    <div class="step-role customer">Customer</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">GET</span>
+                        <span class="path">/api/v1/account-types</span>
+                    </div>
+                    <div class="response">✅ <strong>Success Response:</strong>
+{
+  "success": true,
+  "data": [
+    {
+      "id": "account-type-uuid",
+      "code": "SAVINGS",
+      "name": "Savings Account",
+      "currency": "USD",
+      "min_balance": 100.00,
+      "max_balance": 10000.00,
+      "allow_overdraft": false,
+      "accrues_interest": true,
+      "interest_rate": 2.5
+    }
+  ]
+}</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Create Customer Account (Staff)</div>
+                    <div class="step-role staff">Staff</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">POST</span>
+                        <span class="path">/api/v1/accounts</span>
+                    </div>
+                    <div class="payload-section">
+                        <div class="payload-title">Request Payload:</div>
+                        <div class="payload">{
+  "customer_id": "user-uuid-here",
+  "account_type_id": "account-type-uuid-here",
+  "name": "John's Savings Account"
+}</div>
+                    </div>
+                    <div class="response">✅ <strong>Success Response (201):</strong>
+{
+  "success": true,
+  "message": "Account created successfully",
+  "data": {
+    "id": "account-uuid",
+    "customer_id": "user-uuid",
+    "account_type_id": "account-type-uuid",
+    "account_no": "ACC001234567",
+    "name": "John's Savings Account",
+    "currency": "USD",
+    "status": "active",
+    "opened_at": "2024-01-15",
+    "balance": {
+      "current_balance": 0.00,
+      "available_balance": 0.00
+    }
+  }
+}</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">4</div>
+                    <div class="step-title">View Customer Accounts</div>
+                    <div class="step-role customer">Customer</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">GET</span>
+                        <span class="path">/api/v1/users/{user_id}/accounts</span>
+                    </div>
+                    <div class="response">✅ <strong>Success Response:</strong>
+{
+  "success": true,
+  "data": [
+    {
+      "id": "account-uuid",
+      "account_no": "ACC001234567",
+      "name": "John's Savings Account",
+      "currency": "USD",
+      "status": "active",
+      "balance": {
+        "current_balance": 0.00,
+        "available_balance": 0.00
+      },
+      "account_type": {
+        "name": "Savings Account",
+        "currency": "USD"
+      }
+    }
+  ]
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PHASE 3: LOAN APPLICATION -->
+        <div id="phase-loans" class="phase" data-phase="PHASE 3">
+            <div class="phase-header">
+                <h2 class="phase-title">💰 Loan Products & Applications</h2>
+                <p class="phase-description">Creating loan products and submitting loan applications</p>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Create Loan Product (Admin)</div>
+                    <div class="step-role admin">Admin</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">POST</span>
+                        <span class="path">/api/v1/loan-products</span>
+                    </div>
+                    <div class="payload-section">
+                        <div class="payload-title">Request Payload:</div>
+                        <div class="payload">{
+  "code": "PERSONAL_LOAN",
+  "name": "Personal Loan",
+  "description": "Unsecured personal loan for various purposes",
+  "requires_account": true,
+  "repayment_account_type_id": "savings-account-type-uuid",
+  "min_amount": 1000.00,
+  "max_amount": 50000.00,
+  "interest_type": "reducing",
+  "interest_rate": 12.5,
+  "tenure_min_months": 6,
+  "tenure_max_months": 60,
+  "processing_fee": 2.0,
+  "penalty_rate": 2.0,
+  "insurance_fee": 0.5,
+  "legal_fee": 1.0,
+  "allow_early_repayment": true,
+  "early_repayment_penalty": 1.0,
+  "requires_guarantor": false,
+  "requires_collateral": false
+}</div>
+                    </div>
+                    <div class="response">✅ <strong>Success Response (201):</strong>
+{
+  "success": true,
+  "message": "Loan product created",
+  "data": {
+    "id": "loan-product-uuid",
+    "code": "PERSONAL_LOAN",
+    "name": "Personal Loan",
+    "min_amount": 1000.00,
+    "max_amount": 50000.00,
+    "interest_rate": 12.5,
+    "tenure_min_months": 6,
+    "tenure_max_months": 60
+  }
+}</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">2</div>
+                    <div class="step-title">Browse Loan Products</div>
+                    <div class="step-role customer">Customer</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">GET</span>
+                        <span class="path">/api/v1/loan-products</span>
+                    </div>
+                    <div class="response">✅ <strong>Success Response:</strong>
+{
+  "success": true,
+  "data": [
+    {
+      "id": "loan-product-uuid",
+      "code": "PERSONAL_LOAN",
+      "name": "Personal Loan",
+      "description": "Unsecured personal loan for various purposes",
+      "min_amount": 1000.00,
+      "max_amount": 50000.00,
+      "interest_rate": 12.5,
+      "tenure_min_months": 6,
+      "tenure_max_months": 60,
+      "processing_fee": 2.0,
+      "requires_guarantor": false,
+      "requires_collateral": false
+    }
+  ]
+}</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Submit Loan Application</div>
+                    <div class="step-role customer">Customer</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">POST</span>
+                        <span class="path">/api/v1/loan-applications</span>
+                    </div>
+                    <div class="payload-section">
+                        <div class="payload-title">Request Payload:</div>
+                        <div class="payload">{
+  "loan_product_id": "loan-product-uuid",
+  "account_id": "account-uuid",
+  "principal": 10000.00,
+  "tenure_months": 24,
+  "purpose": "Home improvement",
+  "employment_status": "employed",
+  "monthly_income": 5000.00,
+  "employer_name": "Tech Corp",
+  "employer_address": "123 Business St, City, State",
+  "emergency_contact_name": "Jane Doe",
+  "emergency_contact_phone": "+1234567891",
+  "emergency_contact_relationship": "spouse"
+}</div>
+                    </div>
+                    <div class="response">✅ <strong>Success Response (201):</strong>
+{
+  "success": true,
+  "message": "Loan application submitted successfully",
+  "data": {
+    "id": "application-uuid",
+    "loan_product_id": "loan-product-uuid",
+    "customer_id": "user-uuid",
+    "account_id": "account-uuid",
+    "principal": 10000.00,
+    "tenure_months": 24,
+    "status": "pending",
+    "purpose": "Home improvement",
+    "application_no": "APP001234567",
+    "submitted_at": "2024-01-15T10:30:00Z"
+  }
+}</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">4</div>
+                    <div class="step-title">View My Applications</div>
+                    <div class="step-role customer">Customer</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">GET</span>
+                        <span class="path">/api/v1/users/{user_id}/loan-applications</span>
+                    </div>
+                    <div class="response">✅ <strong>Success Response:</strong>
+{
+  "success": true,
+  "data": [
+    {
+      "id": "application-uuid",
+      "application_no": "APP001234567",
+      "loan_product": {
+        "name": "Personal Loan",
+        "interest_rate": 12.5
+      },
+      "principal": 10000.00,
+      "tenure_months": 24,
+      "status": "pending",
+      "submitted_at": "2024-01-15T10:30:00Z"
+    }
+  ]
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PHASE 4: LOAN PROCESSING -->
+        <div id="phase-processing" class="phase" data-phase="PHASE 4">
+            <div class="phase-header">
+                <h2 class="phase-title">✅ Loan Approval & Processing</h2>
+                <p class="phase-description">Staff review, approval, and loan creation process</p>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Review Pending Applications (Staff)</div>
+                    <div class="step-role staff">Staff</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">GET</span>
+                        <span class="path">/api/v1/loan-applications?status=pending</span>
+                    </div>
+                    <div class="response">✅ <strong>Success Response:</strong>
+{
+  "success": true,
+  "data": {
+    "data": [
+      {
+        "id": "application-uuid",
+        "application_no": "APP001234567",
+        "customer": {
+          "first_name": "John",
+          "last_name": "Doe",
+          "phone": "+1234567890"
+        },
+        "loan_product": {
+          "name": "Personal Loan",
+          "interest_rate": 12.5
+        },
+        "principal": 10000.00,
+        "tenure_months": 24,
+        "purpose": "Home improvement",
+        "status": "pending",
+        "submitted_at": "2024-01-15T10:30:00Z"
+      }
+    ]
+  }
+}</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">2</div>
+                    <div class="step-title">Approve Loan Application</div>
+                    <div class="step-role staff">Staff</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">POST</span>
+                        <span class="path">/api/v1/loan-applications/{application_id}/approve</span>
+                    </div>
+                    <div class="payload-section">
+                        <div class="payload-title">Request Payload:</div>
+                        <div class="payload">{
+  "approved_principal": 10000.00,
+  "approved_tenure_months": 24,
+  "approved_interest_rate": 12.5,
+  "approved_by": "staff-user-uuid",
+  "approval_notes": "Application approved after credit check and document verification"
+}</div>
+                    </div>
+                    <div class="response">✅ <strong>Success Response:</strong>
+{
+  "success": true,
+  "message": "Loan application approved successfully",
+  "data": {
+    "id": "application-uuid",
+    "status": "approved",
+    "approved_principal": 10000.00,
+    "approved_tenure_months": 24,
+    "approved_interest_rate": 12.5,
+    "approved_by": "staff-user-uuid",
+    "approved_at": "2024-01-16T09:00:00Z",
+    "loan": {
+      "id": "loan-uuid",
+      "loan_no": "LN001234567",
+      "status": "approved"
+    }
+  }
+}</div>
+                </div>
+            </div>
+
+            <div class="scenario">
+                <div class="scenario-title">🚫 Loan Rejection Scenario</div>
+                <div class="endpoint">
+                    <span class="method">POST</span>
+                    <span class="path">/api/v1/loan-applications/{application_id}/reject</span>
+                </div>
+                <div class="payload-section">
+                    <div class="payload-title">Request Payload:</div>
+                    <div class="payload">{
+  "rejection_reason": "insufficient_credit_score",
+  "rejection_notes": "Credit score below minimum requirement of 650",
+  "rejected_by": "staff-user-uuid"
+}</div>
+                </div>
+                <div class="response error">❌ <strong>Rejection Response:</strong>
+{
+  "success": true,
+  "message": "Loan application rejected",
+  "data": {
+    "id": "application-uuid",
+    "status": "rejected",
+    "rejection_reason": "insufficient_credit_score",
+    "rejected_by": "staff-user-uuid",
+    "rejected_at": "2024-01-16T09:00:00Z"
+  }
+}</div>
+            </div>
+        </div>
+
+        <!-- PHASE 5: LOAN DISBURSEMENT -->
+        <div id="phase-disbursement" class="phase" data-phase="PHASE 5">
+            <div class="phase-header">
+                <h2 class="phase-title">💸 Loan Disbursement & Ledger Entries</h2>
+                <p class="phase-description">Loan disbursement with double-entry accounting</p>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Create Loan Ledger Accounts (Admin)</div>
+                    <div class="step-role admin">Admin</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">POST</span>
+                        <span class="path">/api/v1/ledgers</span>
+                    </div>
+                    <div class="payload-section">
+                        <div class="payload-title">Request Payload (Loan Principal Account):</div>
+                        <div class="payload">{
+  "account_no": "20001",
+  "name": "Loans Receivable",
+  "type": "asset",
+  "category": "current_assets",
+  "subcategory": "loans_receivable",
+  "currency": "USD",
+  "is_active": true,
+  "description": "Outstanding loan principal amounts"
+}</div>
+                    </div>
+                    <div class="response">✅ <strong>Success Response (201):</strong>
+{
+  "success": true,
+  "message": "Ledger account created",
+  "data": {
+    "id": "ledger-loans-receivable-uuid",
+    "account_no": "20001",
+    "name": "Loans Receivable",
+    "type": "asset",
+    "category": "current_assets",
+    "balance": 0.00
+  }
+}</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">2</div>
+                    <div class="step-title">Disburse Loan</div>
+                    <div class="step-role auditor">Auditor</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">POST</span>
+                        <span class="path">/api/v1/loans/{loan_id}/disburse</span>
+                    </div>
+                    <div class="payload-section">
+                        <div class="payload-title">Request Payload:</div>
+                        <div class="payload">{
+  "disbursement_account_id": "customer-account-uuid",
+  "disbursed_amount": 10000.00,
+  "disbursement_method": "bank_transfer",
+  "disbursement_reference": "TXN001234567",
+  "disbursed_by": "auditor-user-uuid",
+  "disbursement_date": "2024-01-17",
+  "processing_fee": 200.00
+}</div>
+                    </div>
+                    <div class="response">✅ <strong>Success Response:</strong>
+{
+  "success": true,
+  "message": "Loan disbursed successfully",
+  "data": {
+    "id": "loan-uuid",
+    "loan_no": "LN001234567",
+    "status": "active",
+    "disbursed_amount": 10000.00,
+    "outstanding_principal": 10000.00,
+    "disbursed_at": "2024-01-17T10:00:00Z",
+    "next_payment_date": "2024-02-17"
+  }
+}</div>
+                    <div class="note">
+                        <div class="note-title">📒 Ledger Impact:</div>
+                        <p>This creates journal entries: Debit Customer Account $10,000, Credit Loans Receivable $10,000</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">3</div>
+                    <div class="step-title">View Loan Schedule</div>
+                    <div class="step-role customer">Customer</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">GET</span>
+                        <span class="path">/api/v1/loans/{loan_id}/schedule</span>
+                    </div>
+                    <div class="response">✅ <strong>Success Response:</strong>
+{
+  "success": true,
+  "data": {
+    "loan_id": "loan-uuid",
+    "principal": 10000.00,
+    "interest_rate": 12.5,
+    "tenure_months": 24,
+    "total_interest": 2083.33,
+    "total_repayment": 12083.33,
+    "monthly_payment": 503.47,
+    "schedule": [
+      {
+        "installment_no": 1,
+        "due_date": "2024-02-17",
+        "principal": 385.42,
+        "interest": 104.17,
+        "total_payment": 489.59,
+        "remaining_balance": 9614.58,
+        "status": "pending"
+      },
+      {
+        "installment_no": 2,
+        "due_date": "2024-03-17",
+        "principal": 388.94,
+        "interest": 101.65,
+        "total_payment": 490.59,
+        "remaining_balance": 9225.64,
+        "status": "pending"
+      }
+    ]
+  }
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PHASE 6: REPAYMENTS -->
+        <div id="phase-repayments" class="phase" data-phase="PHASE 6">
+            <div class="phase-header">
+                <h2 class="phase-title">📅 Loan Repayments & Collections</h2>
+                <p class="phase-description">Monthly repayments and payment processing</p>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Record Loan Repayment</div>
+                    <div class="step-role auditor">Auditor</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">POST</span>
+                        <span class="path">/api/v1/loans/{loan_id}/repay</span>
+                    </div>
+                    <div class="payload-section">
+                        <div class="payload-title">Request Payload:</div>
+                        <div class="payload">{
+  "payment_amount": 489.59,
+  "payment_date": "2024-02-17",
+  "payment_method": "bank_transfer",
+  "payment_reference": "PAY001234567",
+  "collected_by": "auditor-user-uuid",
+  "notes": "Monthly installment payment"
+}</div>
+                    </div>
+                    <div class="response">✅ <strong>Success Response:</strong>
+{
+  "success": true,
+  "message": "Loan repayment recorded successfully",
+  "data": {
+    "id": "repayment-uuid",
+    "loan_id": "loan-uuid",
+    "payment_amount": 489.59,
+    "principal_paid": 385.42,
+    "interest_paid": 104.17,
+    "payment_date": "2024-02-17",
+    "outstanding_principal": 9614.58,
+    "next_payment_date": "2024-03-17"
+  }
+}</div>
+                    <div class="note">
+                        <div class="note-title">📒 Ledger Impact:</div>
+                        <p>Debit Cash/Bank $489.59, Credit Interest Income $104.17, Credit Loans Receivable $385.42</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">2</div>
+                    <div class="step-title">View My Loans</div>
+                    <div class="step-role customer">Customer</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">GET</span>
+                        <span class="path">/api/v1/users/{user_id}/loans</span>
+                    </div>
+                    <div class="response">✅ <strong>Success Response:</strong>
+{
+  "success": true,
+  "data": [
+    {
+      "id": "loan-uuid",
+      "loan_no": "LN001234567",
+      "loan_product": {
+        "name": "Personal Loan"
+      },
+      "principal": 10000.00,
+      "outstanding_principal": 9614.58,
+      "next_payment_date": "2024-03-17",
+      "status": "active",
+      "last_payment_date": "2024-02-17"
+    }
+  ]
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PHASE 7: REFERRALS & COMMISSIONS -->
+        <div id="phase-referrals" class="phase" data-phase="PHASE 7">
+            <div class="phase-header">
+                <h2 class="phase-title">👥 Referral System & Commissions</h2>
+                <p class="phase-description">Managing referrals and commission payouts</p>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Create Referral Code (Marketer)</div>
+                    <div class="step-role marketer">Marketer</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">POST</span>
+                        <span class="path">/api/v1/referral-codes</span>
+                    </div>
+                    <div class="payload-section">
+                        <div class="payload-title">Request Payload:</div>
+                        <div class="payload">{
+  "user_id": "marketer-user-uuid",
+  "code": "JOHN2024",
+  "description": "John's referral code for 2024",
+  "commission_rate": 5.0,
+  "is_active": true,
+  "expires_at": "2024-12-31"
+}</div>
+                    </div>
+                    <div class="response">✅ <strong>Success Response (201):</strong>
+{
+  "success": true,
+  "message": "Referral code created",
+  "data": {
+    "id": "referral-code-uuid",
+    "code": "JOHN2024",
+    "user_id": "marketer-user-uuid",
+    "commission_rate": 5.0,
+    "is_active": true,
+    "usage_count": 0
+  }
+}</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">2</div>
+                    <div class="step-title">Validate Referral Code</div>
+                    <div class="step-role customer">Customer</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">POST</span>
+                        <span class="path">/api/v1/referral-codes/validate</span>
+                    </div>
+                    <div class="payload-section">
+                        <div class="payload-title">Request Payload:</div>
+                        <div class="payload">{
+  "code": "JOHN2024"
+}</div>
+                    </div>
+                    <div class="response">✅ <strong>Success Response:</strong>
+{
+  "success": true,
+  "message": "Referral code is valid",
+  "data": {
+    "id": "referral-code-uuid",
+    "code": "JOHN2024",
+    "commission_rate": 5.0,
+    "is_active": true,
+    "expires_at": "2024-12-31"
+  }
+}</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Create Commission Rule (Admin)</div>
+                    <div class="step-role admin">Admin</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">POST</span>
+                        <span class="path">/api/v1/commission-rules</span>
+                    </div>
+                    <div class="payload-section">
+                        <div class="payload-title">Request Payload:</div>
+                        <div class="payload">{
+  "name": "Loan Disbursement Commission",
+  "type": "loan_disbursement",
+  "rate_type": "percentage",
+  "rate_value": 2.0,
+  "min_amount": 0,
+  "max_amount": 1000,
+  "is_active": true,
+  "description": "Commission on loan disbursements"
+}</div>
+                    </div>
+                    <div class="response">✅ <strong>Success Response (201):</strong>
+{
+  "success": true,
+  "message": "Commission rule created",
+  "data": {
+    "id": "commission-rule-uuid",
+    "name": "Loan Disbursement Commission",
+    "type": "loan_disbursement",
+    "rate_value": 2.0,
+    "is_active": true
+  }
+}</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">4</div>
+                    <div class="step-title">Process Commission Payout (Auditor)</div>
+                    <div class="step-role auditor">Auditor</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">POST</span>
+                        <span class="path">/api/v1/commission-payout-batches/{batch_id}/process</span>
+                    </div>
+                    <div class="response">✅ <strong>Success Response:</strong>
+{
+  "success": true,
+  "message": "Commission payout batch processed",
+  "data": {
+    "id": "batch-uuid",
+    "status": "processed",
+    "total_amount": 200.00,
+    "processed_at": "2024-01-20T10:00:00Z"
+  }
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PHASE 8: MONITORING & AUDIT -->
+        <div id="phase-monitoring" class="phase" data-phase="PHASE 8">
+            <div class="phase-header">
+                <h2 class="phase-title">📊 Monitoring, Audit & Reporting</h2>
+                <p class="phase-description">System monitoring, audit trails, and financial reporting</p>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">1</div>
+                    <div class="step-title">View Audit Logs (Admin)</div>
+                    <div class="step-role admin">Admin</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">GET</span>
+                        <span class="path">/api/v1/audit-logs?entity_type=loan&entity_id={loan_id}</span>
+                    </div>
+                    <div class="response">✅ <strong>Success Response:</strong>
+{
+  "success": true,
+  "data": [
+    {
+      "id": "audit-uuid-1",
+      "user_id": "staff-user-uuid",
+      "action": "loan_application_approved",
+      "entity_type": "loan_application",
+      "entity_id": "application-uuid",
+      "old_values": {"status": "pending"},
+      "new_values": {"status": "approved"},
+      "created_at": "2024-01-16T09:00:00Z"
+    },
+    {
+      "id": "audit-uuid-2",
+      "user_id": "auditor-user-uuid",
+      "action": "loan_disbursed",
+      "entity_type": "loan",
+      "entity_id": "loan-uuid",
+      "old_values": {"status": "approved"},
+      "new_values": {"status": "active", "disbursed_amount": 10000.00},
+      "created_at": "2024-01-17T10:00:00Z"
+    }
+  ]
+}</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">2</div>
+                    <div class="step-title">Generate Trial Balance</div>
+                    <div class="step-role auditor">Auditor</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">GET</span>
+                        <span class="path">/api/v1/ledger/trial-balance</span>
+                    </div>
+                    <div class="response">✅ <strong>Success Response:</strong>
+{
+  "success": true,
+  "data": {
+    "as_of_date": "2024-01-20",
+    "assets": {
+      "cash_and_bank": 9500.00,
+      "loans_receivable": 10000.00,
+      "total_assets": 19500.00
+    },
+    "liabilities": {
+      "customer_deposits": 500.00,
+      "total_liabilities": 500.00
+    },
+    "equity": {
+      "retained_earnings": 18500.00,
+      "total_equity": 18500.00
+    },
+    "total_liabilities_equity": 19000.00,
+    "is_balanced": false,
+    "difference": 500.00
+  }
+}</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Close Daily Books</div>
+                    <div class="step-role auditor">Auditor</div>
+                </div>
+                <div class="step-content">
+                    <div class="endpoint">
+                        <span class="method">POST</span>
+                        <span class="path">/api/v1/ledger/close-day</span>
+                    </div>
+                    <div class="payload-section">
+                        <div class="payload-title">Request Payload:</div>
+                        <div class="payload">{
+  "closing_date": "2024-01-20",
+  "closed_by": "auditor-user-uuid",
+  "notes": "Daily closing for January 20, 2024"
+}</div>
+                    </div>
+                    <div class="response">✅ <strong>Success Response:</strong>
+{
+  "success": true,
+  "message": "Day closed successfully",
+  "data": {
+    "closing_date": "2024-01-20",
+    "closed_by": "auditor-user-uuid",
+    "total_transactions": 15,
+    "closing_balance": 19500.00
+  }
+}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PHASE 9: EDGE CASES & ERROR HANDLING -->
+        <div id="phase-errors" class="phase" data-phase="PHASE 9">
+            <div class="phase-header">
+                <h2 class="phase-title">⚠️ Error Handling & Edge Cases</h2>
+                <p class="phase-description">Rate limiting, validation errors, and security scenarios</p>
+            </div>
+
+            <div class="scenario">
+                <div class="scenario-title">🚦 Rate Limiting Example</div>
+                <div class="endpoint">
+                    <span class="method">POST</span>
+                    <span class="path">/api/v1/login</span>
+                </div>
+                <div class="payload-section">
+                    <div class="payload-title">Multiple Failed Login Attempts:</div>
+                    <div class="payload">// Attempt 1-5: Invalid credentials
+{
+  "email": "john.doe@example.com",
+  "password": "wrongpassword"
+}</div>
+                </div>
+                <div class="response error">❌ <strong>Rate Limited Response (429):</strong>
+{
+  "success": false,
+  "message": "Too many login attempts. Please try again in 15 minutes.",
+  "error": "rate_limit_exceeded",
+  "retry_after": 900
+}</div>
+            </div>
+
+            <div class="scenario">
+                <div class="scenario-title">🔒 Insufficient Permissions</div>
+                <div class="endpoint">
+                    <span class="method">POST</span>
+                    <span class="path">/api/v1/loan-products</span>
+                </div>
+                <div class="response error">❌ <strong>Unauthorized Response (403):</strong>
+{
+  "success": false,
+  "message": "You do not have permission to perform this action",
+  "error": "insufficient_permissions",
+  "required_role": "admin"
+}</div>
+            </div>
+
+            <div class="scenario">
+                <div class="scenario-title">📝 Validation Errors</div>
+                <div class="endpoint">
+                    <span class="method">POST</span>
+                    <span class="path">/api/v1/register</span>
+                </div>
+                <div class="payload-section">
+                    <div class="payload-title">Invalid Payload:</div>
+                    <div class="payload">{
+  "first_name": "",
+  "last_name": "Doe",
+  "phone": "invalid-phone",
+  "password": "123",
+  "password_confirmation": "456"
+}</div>
+                </div>
+                <div class="response error">❌ <strong>Validation Error Response (422):</strong>
+{
+  "success": false,
+  "message": "Validation failed",
+  "errors": {
+    "first_name": ["The first name field is required."],
+    "phone": ["The phone format is invalid."],
+    "password": ["The password must be at least 8 characters.", "The password confirmation does not match."]
+  }
+}</div>
+            </div>
+
+            <div class="scenario">
+                <div class="scenario-title">🚫 Account Limits & Fraud Detection</div>
+                <div class="endpoint">
+                    <span class="method">POST</span>
+                    <span class="path">/api/v1/accounts/{account_id}/debit</span>
+                </div>
+                <div class="payload-section">
+                    <div class="payload-title">Excessive Debit Attempt:</div>
+                    <div class="payload">{
+  "amount": 100000.00,
+  "description": "Large withdrawal attempt",
+  "reference": "TXN999999999"
+}</div>
+                </div>
+                <div class="response error">❌ <strong>Limit Exceeded Response (422):</strong>
+{
+  "success": false,
+  "message": "Transaction amount exceeds account limits",
+  "error": "account_limit_exceeded",
+  "current_limit": 10000.00,
+  "requested_amount": 100000.00
+}</div>
+            </div>
+
+            <div class="scenario">
+                <div class="scenario-title">🚨 Fraud Flag Detection</div>
+                <div class="endpoint">
+                    <span class="method">GET</span>
+                    <span class="path">/api/v1/fraud-flags</span>
+                </div>
+                <div class="response error">❌ <strong>Fraud Alert Response (200 with warnings):</strong>
+{
+  "success": true,
+  "data": [
+    {
+      "id": "flag-uuid",
+      "user_id": "user-uuid",
+      "type": "suspicious_transaction_pattern",
+      "severity": "high",
+      "description": "Multiple large transactions detected",
+      "flagged_at": "2024-01-15T14:30:00Z",
+      "status": "active"
+    }
+  ],
+  "meta": {
+    "total": 1,
+    "warnings": ["Account under fraud monitoring"]
+  }
+}</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border); color: var(--text-dim);">
+        <p>🔄 <strong>Complete Lifecycle Experience</strong> - This page demonstrates the full OpenDoor platform journey from customer onboarding to loan management and financial operations.</p>
+        <p style="margin-top: 1rem;">📖 <a href="docs.html" style="color: var(--accent);">← Back to API Documentation</a></p>
+    </div>
+    <script>
+        document.querySelectorAll('.resource-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const item = header.parentElement;
+                const isActive = item.classList.contains('active');
+                item.classList.toggle('active', !isActive);
+            });
+        });
+    </script>
+</body>
+</html>

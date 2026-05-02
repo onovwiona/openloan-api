@@ -1,0 +1,8 @@
+{
+    "agents": [
+        "copilot"
+    ],
+    "skills": [
+        "laravel-best-practices"
+    ]
+}
