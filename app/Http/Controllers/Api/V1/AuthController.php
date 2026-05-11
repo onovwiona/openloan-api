@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Services\Signup\SignupService;
 
 class AuthController extends Controller
 {
@@ -24,22 +25,25 @@ class AuthController extends Controller
             'email' => 'nullable|email|unique:users,email',
             'phone' => 'required|string|unique:users,phone|max:20',
             'password' => 'required|string|min:8|confirmed',
+            'ref_code' => 'nullable|string',
+            'ip_address' => 'nullable|ip',
+            'user_agent' => 'nullable|string',
+            'device_hash' => 'nullable|string',
         ]);
 
-        $validated['password'] = Hash::make($validated['password']);
+        $signupData = array_merge($validated, [
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'device_hash' => $request->header('Device-Hash'), // optional
+        ]);
 
-        $user = User::create($validated);
-
-        // Assign default customer role if it exists
-        $customerRole = \App\Models\Role::where('name', 'customer')->first();
-        if ($customerRole) {
-            $user->assignRole($customerRole);
-        }
+        $signupService = app(SignupService::class);
+        $user = $signupService->registerCustomer($signupData);
 
         $token = JWTAuth::fromUser($user);
 
         return $this->successResponse([
-            'user' => $user->load('roles'),
+            'user' => $user,
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => JWTAuth::factory()->getTTL() * 60,

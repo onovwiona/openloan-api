@@ -36,6 +36,9 @@ class LoanProduct extends Model
         'requires_guarantor',
         'min_guarantors',
         'requires_collateral',
+        'requires_bank_statement',
+        'requires_proof_income',
+        'requires_passport',
         'active',
     ];
 
@@ -52,6 +55,9 @@ class LoanProduct extends Model
         'allow_early_repayment' => 'boolean',
         'requires_guarantor' => 'boolean',
         'requires_collateral' => 'boolean',
+        'requires_bank_statement' => 'boolean',
+        'requires_proof_income' => 'boolean',
+        'requires_passport' => 'boolean',
         'active' => 'boolean',
     ];
 

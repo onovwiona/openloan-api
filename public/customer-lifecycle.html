@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenDoor API - Customer Lifecycle</title>
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --surface: #1a1a1a;
+            --surface-alt: #2a2a2a;
+            --text: #f0f0f0;
+            --text-dim: #a0a0a0;
+            --accent: #4f46e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --border: #333;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 { color: var(--accent); margin-bottom: 0.5rem; font-size: 2rem; }
+        h2 { color: var(--accent); margin-top: 2rem; margin-bottom: 1rem; font-size: 1.5rem; }
+        h3 { color: var(--text); margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1.1rem; }
+
+        .subtitle { color: var(--text-dim); margin-bottom: 2rem; font-size: 1rem; }
+
+        .lifecycle-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .stage {
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--accent);
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+
+        .stage-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .stage-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: var(--accent);
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .endpoints {
+            background: var(--bg);
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+        }
+
+        .endpoint {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+            padding: 0.75rem;
+            background: var(--surface);
+            border-radius: 4px;
+            border-left: 3px solid;
+        }
+
+        .endpoint.get { border-left-color: #3b82f6; }
+        .endpoint.post { border-left-color: var(--success); }
+        .endpoint.patch { border-left-color: var(--warning); }
+        .endpoint.delete { border-left-color: var(--error); }
+
+        .method {
+            display: inline-block;
+            width: 60px;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .method.get { background: #3b82f6; }
+        .method.post { background: var(--success); }
+        .method.patch { background: var(--warning); color: #000; }
+        .method.delete { background: var(--error); }
+
+        .endpoint-info {
+            flex: 1;
+        }
+
+        .endpoint-path {
+            font-family: 'Monaco', 'Courier New', monospace;
+            background: var(--bg);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .endpoint-desc {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .note {
+            background: var(--surface);
+            border-left: 3px solid var(--warning);
+            padding: 0.75rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 2rem;
+            color: var(--accent);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+        }
+
+        .back-link:hover { background: var(--accent); color: white; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background: var(--surface);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--surface-alt);
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        tr:last-child td { border-bottom: none; }
+
+        code {
+            background: var(--code-bg);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Monaco', monospace;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-link">← Back to Home</a>
+
+    <h1>🛍️ Customer Lifecycle</h1>
+    <p class="subtitle">Complete journey from registration to loan approval, document uploads, and repayment</p>
+
+    <div class="lifecycle-flow">
+        <!-- Stage 1: Registration & Referral -->
+        <div class="stage">
+            <div class="stage-title">
+                <div class="stage-number">1</div>
+                <h2>Registration & Referral</h2>
+            </div>
+            <p>Customer registers via referral code (marketer, staff, secretary, or another customer)</p>
+            <div class="endpoints">
+                <div class="endpoint post">
+                    <span class="method post">POST</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/register</div>
+                        <div class="endpoint-desc">Register new customer with optional referral code</div>
+                    </div>
+                </div>
+                <div class="endpoint post">
+                    <span class="method post">POST</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/login</div>
+                        <div class="endpoint-desc">Login and receive JWT token</div>
+                    </div>
+                </div>
+            </div>
+            <div class="note">
+                ℹ️ Referrer receives notification and commission eligibility when customer makes first loan disbursement
+            </div>
+        </div>
+
+        <!-- Stage 2: Browse Resources -->
+        <div class="stage">
+            <div class="stage-title">
+                <div class="stage-number">2</div>
+                <h2>Browse Account Types & Loan Products</h2>
+            </div>
+            <p>Customer views available account types and loan products to understand options</p>
+            <div class="endpoints">
+                <div class="endpoint get">
+                    <span class="method get">GET</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/account-types</div>
+                        <div class="endpoint-desc">List all available account types (Wallet, Savings, etc.)</div>
+                    </div>
+                </div>
+                <div class="endpoint get">
+                    <span class="method get">GET</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/account-types/{id}</div>
+                        <div class="endpoint-desc">Get specific account type details</div>
+                    </div>
+                </div>
+                <div class="endpoint get">
+                    <span class="method get">GET</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/loan-products</div>
+                        <div class="endpoint-desc">List all available loan products with terms and requirements</div>
+                    </div>
+                </div>
+                <div class="endpoint get">
+                    <span class="method get">GET</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/loan-products/{id}</div>
+                        <div class="endpoint-desc">Get specific loan product details and requirements</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stage 3: Create Accounts -->
+        <div class="stage">
+            <div class="stage-title">
+                <div class="stage-number">3</div>
+                <h2>Create Accounts</h2>
+            </div>
+            <p>Customer creates Wallet and Loan Repayment accounts for transactions</p>
+            <div class="endpoints">
+                <div class="endpoint post">
+                    <span class="method post">POST</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/accounts</div>
+                        <div class="endpoint-desc">Create new account (Wallet, Savings, etc.)</div>
+                    </div>
+                </div>
+                <div class="endpoint get">
+                    <span class="method get">GET</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/accounts</div>
+                        <div class="endpoint-desc">View all customer accounts</div>
+                    </div>
+                </div>
+                <div class="endpoint get">
+                    <span class="method get">GET</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/accounts/{account}/statements</div>
+                        <div class="endpoint-desc">View account statement and transactions</div>
+                    </div>
+                </div>
+            </div>
+            <div class="note">
+                ⚠️ LOAN_REPAY account type is required for loan applications. System auto-creates one per application if needed.
+            </div>
+        </div>
+
+        <!-- Stage 4: Upload KYC -->
+        <div class="stage">
+            <div class="stage-title">
+                <div class="stage-number">4</div>
+                <h2>Upload Core KYC Documents</h2>
+            </div>
+            <p>Customer uploads identity documents (passport photos, ID cards) that persist across all loan applications</p>
+            <div class="endpoints">
+                <div class="endpoint post">
+                    <span class="method post">POST</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/kyc</div>
+                        <div class="endpoint-desc">Upload core KYC documents (passport_photo, id_card_front, id_card_back)</div>
+                    </div>
+                </div>
+                <div class="endpoint post">
+                    <span class="method post">POST</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/kyc/single/{document_type}</div>
+                        <div class="endpoint-desc">Upload single KYC document (passport_photo, id_card_front, id_card_back)</div>
+                    </div>
+                </div>
+                <div class="endpoint get">
+                    <span class="method get">GET</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/kyc</div>
+                        <div class="endpoint-desc">View KYC status and uploaded core documents</div>
+                    </div>
+                </div>
+            </div>
+            <div class="note info">
+                ℹ️ Core KYC documents are shared across all loan applications. Upload once, use everywhere.
+            </div>
+            <div class="note warning">
+                ⚠️ Duplicate uploads are prevented while documents are pending verification. KYC must be 'verified' before loan submission.
+            </div>
+            <div class="payload">
+                <span class="payload-label">Sample KYC Upload Payload:</span>
+                <pre>{
+  "documents": {
+    "passport_photo": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQ...",
+    "id_card_front": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQ..."
+  }
+}</pre>
+            </div>
+        </div>
+
+        <!-- Stage 5: Apply for Loan -->
+        <div class="stage">
+            <div class="stage-title">
+                <div class="stage-number">5</div>
+                <h2>Apply for Loan</h2>
+            </div>
+            <p>Customer creates draft loan application specifying amount, tenure, and loan product</p>
+            <div class="endpoints">
+                <div class="endpoint post">
+                    <span class="method post">POST</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/loan-applications</div>
+                        <div class="endpoint-desc">Create loan application (status: draft). Requires LOAN_REPAY account_id</div>
+                    </div>
+                </div>
+                <div class="endpoint get">
+                    <span class="method get">GET</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/loan-applications</div>
+                        <div class="endpoint-desc">View all loan applications with status</div>
+                    </div>
+                </div>
+                <div class="endpoint get">
+                    <span class="method get">GET</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/loan-applications/{id}</div>
+                        <div class="endpoint-desc">Get specific loan application details</div>
+                    </div>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>account_id</code></td>
+                        <td>UUID</td>
+                        <td>LOAN_REPAY account for loan repayment tracking</td>
+                    </tr>
+                    <tr>
+                        <td><code>loan_product_id</code></td>
+                        <td>UUID</td>
+                        <td>Selected loan product with terms and constraints</td>
+                    </tr>
+                    <tr>
+                        <td><code>requested_amount</code></td>
+                        <td>Numeric</td>
+                        <td>Loan amount (must be within product min/max)</td>
+                    </tr>
+                    <tr>
+                        <td><code>requested_tenure</code></td>
+                        <td>Integer</td>
+                        <td>Repayment tenure in months (must be within product range)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Stage 5.5: Upload Loan Application Documents -->
+        <div class="stage">
+            <div class="stage-title">
+                <div class="stage-number">5.5</div>
+                <h2>Upload Loan Application Documents</h2>
+            </div>
+            <p>Customer uploads application-specific documents (collateral, guarantor notes) required by the selected loan product</p>
+            <div class="endpoints">
+                <div class="endpoint post">
+                    <span class="method post">POST</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/loan-applications/{application_id}/documents</div>
+                        <div class="endpoint-desc">Upload general application documents (business_plan, income_proof, etc.)</div>
+                    </div>
+                </div>
+                <div class="endpoint post">
+                    <span class="method post">POST</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/loan-applications/{application_id}/collateral</div>
+                        <div class="endpoint-desc">Upload collateral documents (PDF only) for secured loans</div>
+                    </div>
+                </div>
+                <div class="endpoint post">
+                    <span class="method post">POST</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/loan-applications/{application_id}/guarantors/{guarantor_id}/notes</div>
+                        <div class="endpoint-desc">Upload guarantor notes (PDF or photos) for loans requiring guarantors</div>
+                    </div>
+                </div>
+                <div class="endpoint get">
+                    <span class="method get">GET</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/loan-applications/{application_id}/documents</div>
+                        <div class="endpoint-desc">View all documents uploaded for this loan application</div>
+                    </div>
+                </div>
+            </div>
+            <div class="note info">
+                ℹ️ These documents are specific to this loan application and cannot be reused for other applications.
+            </div>
+            <div class="note warning">
+                ⚠️ Document requirements depend on the loan product selected. Check product details for mandatory uploads.
+            </div>
+            <div class="payload">
+                <span class="payload-label">Sample Collateral Upload Payload:</span>
+                <pre>{
+  "document": "data:application/pdf;base64,JVBERi0xLjQKJ...",
+  "document_type": "title_deed",
+  "description": "Property title deed for collateral"
+}</pre>
+            </div>
+            <div class="payload">
+                <span class="payload-label">Sample Guarantor Notes Upload Payload:</span>
+                <pre>{
+  "note_1": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQ...",
+  "note_2": "data:application/pdf;base64,JVBERi0xLjQKJ..."
+}</pre>
+            </div>
+        </div>
+
+        <!-- Stage 7: Submit Application -->
+        <div class="stage">
+            <div class="stage-title">
+                <div class="stage-number">7</div>
+                <h2>Submit Application for Review</h2>
+            </div>
+            <p>Customer submits draft application for admin/staff verification (requires verified KYC)</p>
+            <div class="endpoints">
+                <div class="endpoint post">
+                    <span class="method post">POST</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/loan-applications/{id}/submit</div>
+                        <div class="endpoint-desc">Submit application for admin review (KYC must be 'verified')</div>
+                    </div>
+                </div>
+            </div>
+            <div class="note">
+                ⚠️ KYC must be verified AND all required application documents uploaded before submission. System validates loan product requirements.
+            </div>
+        </div>
+
+        <!-- Stage 8: Loan Approval -->
+        <div class="stage">
+            <div class="stage-title">
+                <div class="stage-number">8</div>
+                <h2>Wait for Loan Review & Approval</h2>
+            </div>
+            <p>Admin/staff review application, verify documents, and approve or reject</p>
+            <p style="color: var(--text-dim); margin-top: 0.5rem; font-size: 0.9rem;">
+                ℹ️ Staff will verify loan eligibility based on loan product requirements, customer KYC status, amount constraints, and income/employment details
+            </p>
+            <div class="note">
+                Customer can check application status via <code>GET /api/v1/user/loan-applications/{id}</code>
+            </div>
+        </div>
+
+        <!-- Stage 9: Loan Disbursement -->
+        <div class="stage">
+            <div class="stage-title">
+                <div class="stage-number">9</div>
+                <h2>Loan Disbursement</h2>
+            </div>
+            <p>Admin/staff disburse approved loan to customer's LOAN_REPAY account. Referrer receives commission notification.</p>
+            <div class="endpoints">
+                <div class="endpoint get">
+                    <span class="method get">GET</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/loans</div>
+                        <div class="endpoint-desc">View disbursed loans</div>
+                    </div>
+                </div>
+                <div class="endpoint get">
+                    <span class="method get">GET</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/loans/{id}</div>
+                        <div class="endpoint-desc">Get loan details with repayment schedule</div>
+                    </div>
+                </div>
+                <div class="endpoint get">
+                    <span class="method get">GET</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/loans/{id}/schedule</div>
+                        <div class="endpoint-desc">View loan repayment schedule</div>
+                    </div>
+                </div>
+            </div>
+            <div class="note">
+                ℹ️ Ledger entries generated. LOAN_REPAY account tracks all credit/debit transactions. Referrer receives commission via push notification.
+            </div>
+        </div>
+
+        <!-- Stage 10: Account & Profile Management -->
+        <div class="stage">
+            <div class="stage-title">
+                <div class="stage-number">10</div>
+                <h2>Account & Profile Management</h2>
+            </div>
+            <p>Customer manages profile information and views account statements</p>
+            <div class="endpoints">
+                <div class="endpoint get">
+                    <span class="method get">GET</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/customer-profile</div>
+                        <div class="endpoint-desc">View own customer profile</div>
+                    </div>
+                </div>
+                <div class="endpoint patch">
+                    <span class="method patch">PATCH</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/customer-profile</div>
+                        <div class="endpoint-desc">Update profile (address, DOB, employment, income)</div>
+                    </div>
+                </div>
+                <div class="endpoint get">
+                    <span class="method get">GET</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/me</div>
+                        <div class="endpoint-desc">Get authenticated user details</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: 3rem; padding: 1.5rem; background: var(--surface-alt); border-radius: 8px;">
+        <h3>Authentication</h3>
+        <p>All endpoints except <code>register</code> and <code>login</code> require JWT token in Authorization header:</p>
+        <p style="margin-top: 0.75rem; font-family: monospace; background: var(--bg); padding: 0.75rem; border-radius: 4px;">
+            Authorization: Bearer {jwt_token}
+        </p>
+    </div>
+</body>
+</html>

@@ -9,6 +9,8 @@ use App\Models\LoanProduct;
 use App\Models\LoanSchedule;
 use App\Services\Account\AccountService;
 use App\Services\Ledger\LedgerService;
+use App\Models\AccountType;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
@@ -37,6 +39,19 @@ class LoanService
     ): LoanApplication {
         $product = LoanProduct::findOrFail($productId);
 
+        // Prevent duplicate draft applications for the same loan repay account
+        if ($accountId) {
+            $existingDraft = LoanApplication::where('account_id', $accountId)
+                ->where('status', 'draft')
+                ->first();
+
+            if ($existingDraft) {
+                throw ValidationException::withMessages([
+                    'account_id' => ['Another application of this type is already started for this account.']
+                ]);
+            }
+        }
+
         // Validate amount and tenure
         if ($amount < $product->min_amount || $amount > $product->max_amount) {
             throw ValidationException::withMessages([
@@ -64,6 +79,14 @@ class LoanService
                 'purpose' => $purpose,
                 'status' => 'draft',
             ]);
+
+            // Auto create LOAN_REPAY account if not provided
+            if (!$accountId) {
+                $repayType = \App\Models\AccountType::where('code', 'LOAN_REPAY')->firstOrFail();
+                $repayAccount = $this->accountService->createAccount($customerId, $repayType->id, 'Loan Repay - ' . $application->application_no);
+                $application->account_id = $repayAccount->id;
+                $application->save();
+            }
 
             return $application;
         });
@@ -135,7 +158,7 @@ class LoanService
                 'outstanding_interest' => $interest,
                 'outstanding_total' => $totalRepayment,
                 'status' => 'pending',
-                'approved_by' => auth()->id(),
+                'approved_by' => Auth::id(),
                 'approved_at' => now(),
             ]);
 
@@ -145,7 +168,7 @@ class LoanService
             // Update application status
             $application->update([
                 'status' => 'approved',
-                'reviewed_by' => auth()->id(),
+                'reviewed_by' => Auth::id(),
                 'reviewed_at' => now(),
             ]);
 
@@ -169,7 +192,7 @@ class LoanService
         $application->update([
             'status' => 'rejected',
             'rejection_reason' => $reason,
-            'reviewed_by' => auth()->id(),
+            'reviewed_by' => Auth::id(),
             'reviewed_at' => now(),
         ]);
 
@@ -203,7 +226,7 @@ class LoanService
             $loan->update([
                 'disbursed_amount' => $loan->principal,
                 'status' => 'active',
-                'disbursed_by' => auth()->id(),
+                'disbursed_by' => Auth::id(),
                 'disbursed_at' => now()->toDateString(),
                 'maturity_date' => now()->addMonths($loan->tenure_months)->toDateString(),
                 'first_payment_date' => now()->addMonth()->toDateString(),
@@ -310,7 +333,7 @@ public function recordRepayment(
             // Mark repayment as allocated
             $repayment->update([
                 'allocated' => true,
-                'allocated_by' => auth()->id(),
+                'allocated_by' => Auth::id(),
                 'allocated_at' => now(),
             ]);
 

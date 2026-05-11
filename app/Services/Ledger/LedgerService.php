@@ -275,8 +275,10 @@ class LedgerService
                       ->where('status', 'posted');
             })
             ->with('journalEntry')
-            ->orderBy('journalEntry.entry_date')
-            ->orderBy('journalEntry.id')
+            ->join('journal_entries', 'journal_lines.journal_entry_id', '=', 'journal_entries.id')
+            ->orderBy('journal_entries.entry_date')
+            ->orderBy('journal_entries.id')
+            ->select('journal_lines.*')
             ->get();
 
         $runningBalance = 0;

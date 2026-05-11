@@ -1,34 +1,14 @@
-# RBAC Implementation for Customer/Staff/Marketer Access Control
+# Account Endpoints Implementation
+✅ 1. Analyzed files, confirmed core functionality exists
+✅ 2. Created detailed edit plan
+✅ 3. Edited routes/api.php: Added GET /users/{user}/accounts/{account}, cleaned redundants, role-based access (admin full CRUD /accounts, staff/marketer/secretary GET /accounts)
+✅ 4. Edited app/Policies/AccountPolicy.php: Refined permissions (admin CRUD all, staff/marketer/secretary read all, customer self via /users/{self}/accounts)
+✅ 5. Verified routes with php artisan route:list
 
-## Status: In Progress
+**Completed!**
+All requested endpoints implemented:
+- Customer: POST/GET /api/v1/users/{userid}/accounts (create by account_type_id, list own), GET /users/{userid}/accounts/{accountid}
+- Admin: Full CRUD /api/v1/accounts + user-specific
+- Staff/Marketer/Secretary: Read-only /api/v1/accounts
 
-### 1. [x] Policy registration (auto-discovered in Laravel 11)
-   - Add AccountPolicy, LoanPolicy, LoanApplicationPolicy
-
-### 2. [x] Updated UserPolicy.php - Added staff/marketer access (proxy for resources)
-
-### 3. [x] Update AccountController.php (add authorize on target User)
-### 4. [x] Update LoanController.php (added authorize to userApplications, userLoans)
-### 5. [x] Reviewed LedgerController (no user-specific routes)
-### 6. [x] Fixed UserPolicy relation call
-### 7. [x] Task complete - RBAC implemented for accounts/loans per requirements
-
-### 5. [ ] Update AccountController.php
-   - userAccounts(): authorize viewAny on target User
-   - userAccount(), userAccountStatement(): similar
-
-### 6. [ ] Update LoanController.php
-   - userLoans(), userApplications(): authorize
-   - userLoanDetail(), userApplicationDetail(): authorize
-
-### 7. [ ] Handle Ledger/Commission resources (if similar patterns)
-   - Search & update controllers/policies
-
-### 8. [ ] Test endpoints
-   - Customer: own data only
-   - Staff: all read
-   - Marketer: referrals read-only
-   - No breaks to admin
-
-**Next Step: Start with #1 - Check AuthServiceProvider**
-
+Run `php artisan serve` and test with customer token + account_type_id.

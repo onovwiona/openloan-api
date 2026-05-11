@@ -1,19 +1,29 @@
 <?php
 
 namespace App\Services\Signup;
+
 use App\Models\CustomerProfile;
 use App\Models\FraudFlag;
 use App\Models\SignupAttempt;
 use App\Models\User;
 use App\Models\Role;
+use App\Models\AccountType;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use App\Services\Referral\ReferralAttributionService;
 use App\Services\Fraud\FraudDetectionService;
+use App\Services\Account\AccountService;
 
 class SignupService
 {
+    protected AccountService $accountService;
+
+    public function __construct()
+    {
+        $this->accountService = app(AccountService::class);
+    }
+
     public function registerCustomer(array $data): User
     {
         return DB::transaction(function () use ($data) {
@@ -77,6 +87,10 @@ class SignupService
                 'kyc_status' => 'pending',
             ]);
 
+            // Create default wallet account
+            $walletType = AccountType::where('code', 'WAL')->firstOrFail();
+            $wallet = $this->accountService->createAccount($user->id, $walletType->id, 'Default Wallet');
+
             app(ReferralAttributionService::class)->attributeNewCustomer(
                 $user,
                 $data['ref_code'] ?? null,
@@ -91,7 +105,7 @@ class SignupService
 
             $attempt->update(['status' => 'created']);
 
-            return $user;
+            return $user->load(['roles', 'customerProfile', 'accounts']);
         });
     }
 }

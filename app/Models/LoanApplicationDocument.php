@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class LoanGuarantor extends Model
+class LoanApplicationDocument extends Model
 {
     use HasFactory;
 
@@ -15,22 +15,18 @@ class LoanGuarantor extends Model
 
     protected $fillable = [
         'loan_application_id',
-        'name',
-        'phone',
-        'address',
-        'relationship',
-        'employer',
-        'employer_phone',
-        'monthly_income',
+        'document_type',
+        'file_url',
+        'filename',
         'status',
-        'notes',
-        'note_1_url',
-        'note_2_url',
+        'verified_at',
+        'verified_by',
         'rejection_reason',
+        'verification_notes',
     ];
 
     protected $casts = [
-        'monthly_income' => 'decimal:2',
+        'verified_at' => 'datetime',
     ];
 
     protected static function boot()

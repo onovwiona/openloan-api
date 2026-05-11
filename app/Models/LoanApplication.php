@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class LoanApplication extends Model
 {
@@ -84,7 +85,7 @@ class LoanApplication extends Model
     /**
      * Get the loan (if approved)
      */
-    public function loan(): BelongsTo
+    public function loan(): HasOne
     {
         return $this->hasOne(Loan::class, 'loan_application_id');
     }
@@ -103,6 +104,14 @@ class LoanApplication extends Model
     public function collaterals(): HasMany
     {
         return $this->hasMany(LoanCollateral::class, 'loan_application_id');
+    }
+
+    /**
+     * Get loan application documents
+     */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(LoanApplicationDocument::class, 'loan_application_id');
     }
 
     /**
@@ -128,6 +137,11 @@ class LoanApplication extends Model
     {
         if ($this->status !== 'draft') {
             throw new \Exception('Only draft applications can be submitted');
+        }
+
+        // Check KYC verification
+        if ($this->customer->customerProfile->kyc_status !== 'verified') {
+            throw new \Exception('KYC verification is required before submitting loan application');
         }
 
         $this->update([

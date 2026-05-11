@@ -30,6 +30,7 @@ class LoanProductSeeder extends Seeder
                 'requires_guarantor' => false,
                 'min_guarantors' => 0,
                 'requires_collateral' => false,
+                'requires_passport' => false,
                 'active' => true,
             ],
             [
@@ -51,6 +52,7 @@ class LoanProductSeeder extends Seeder
                 'requires_guarantor' => true,
                 'min_guarantors' => 1,
                 'requires_collateral' => false,
+                'requires_passport' => false,
                 'active' => true,
             ],
             [
@@ -72,6 +74,7 @@ class LoanProductSeeder extends Seeder
                 'requires_guarantor' => true,
                 'min_guarantors' => 2,
                 'requires_collateral' => true,
+                'requires_passport' => false,
                 'active' => true,
             ],
             [
@@ -93,6 +96,7 @@ class LoanProductSeeder extends Seeder
                 'requires_guarantor' => false,
                 'min_guarantors' => 0,
                 'requires_collateral' => false,
+                'requires_passport' => false,
                 'active' => true,
             ],
             [
@@ -114,6 +118,7 @@ class LoanProductSeeder extends Seeder
                 'requires_guarantor' => false,
                 'min_guarantors' => 0,
                 'requires_collateral' => false,
+                'requires_passport' => false,
                 'active' => true,
             ],
         ];

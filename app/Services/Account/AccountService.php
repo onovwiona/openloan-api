@@ -177,7 +177,7 @@ class AccountService
             ]);
         }
 
-        return DB::transaction(function () use ($fromAccount, $toAccount, $amount, $description) {
+        return DB::transaction(function () use ($fromAccount, $toAccount, $fromAccountId, $toAccountId, $amount, $description) {
             // Debit from source account
             $this->debit($fromAccountId, $amount, "Transfer out: {$description}");
 
@@ -321,6 +321,32 @@ class AccountService
             'transactions' => $statement['transactions'],
             'closing_balance' => $statement['closing_balance'],
         ];
+    }
+
+    /**
+     * Get account transactions
+     */
+    public function getTransactions(
+        string $accountId,
+        ?string $startDate = null,
+        ?string $endDate = null
+    ): array {
+        $account = Account::with('accountType', 'customer')->findOrFail($accountId);
+
+        $startDate = $startDate ?? now()->startOfMonth()->toDateString();
+        $endDate = $endDate ?? now()->endOfMonth()->toDateString();
+
+        // Get ledger account for this customer account
+        $ledgerAccount = $this->getOrCreateCustomerLedgerAccount($account);
+
+        // Get transactions from ledger
+        $statement = $this->ledgerService->getAccountStatement(
+            $ledgerAccount->id,
+            \Carbon\Carbon::parse($startDate),
+            \Carbon\Carbon::parse($endDate)
+        );
+
+        return $statement['transactions']->toArray();
     }
 
     /**

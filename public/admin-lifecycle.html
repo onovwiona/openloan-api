@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenDoor API - Admin & Staff Lifecycle</title>
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --surface: #1a1a1a;
+            --surface-alt: #2a2a2a;
+            --text: #f0f0f0;
+            --text-dim: #a0a0a0;
+            --accent: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --border: #333;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 { color: var(--accent); margin-bottom: 0.5rem; font-size: 2rem; }
+        h2 { color: var(--accent); margin-top: 2rem; margin-bottom: 1rem; font-size: 1.5rem; }
+        h3 { color: var(--text); margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1.1rem; }
+
+        .subtitle { color: var(--text-dim); margin-bottom: 2rem; font-size: 1rem; }
+
+        .role-badge {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-left: 0.75rem;
+        }
+
+        .section {
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--accent);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: var(--accent);
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .endpoints {
+            background: var(--bg);
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+        }
+
+        .endpoint {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+            padding: 0.75rem;
+            background: var(--surface);
+            border-radius: 4px;
+            border-left: 3px solid;
+        }
+
+        .endpoint.get { border-left-color: #3b82f6; }
+        .endpoint.post { border-left-color: var(--success); }
+        .endpoint.patch { border-left-color: var(--warning); }
+        .endpoint.delete { border-left-color: var(--error); }
+
+        .method {
+            display: inline-block;
+            width: 60px;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .method.get { background: #3b82f6; }
+        .method.post { background: var(--success); }
+        .method.patch { background: var(--warning); color: #000; }
+        .method.delete { background: var(--error); }
+
+        .endpoint-info {
+            flex: 1;
+        }
+
+        .endpoint-path {
+            font-family: 'Monaco', 'Courier New', monospace;
+            background: var(--bg);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .endpoint-desc {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .note {
+            background: var(--surface);
+            border-left: 3px solid var(--warning);
+            padding: 0.75rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 2rem;
+            color: var(--accent);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+        }
+
+        .back-link:hover { background: var(--accent); color: white; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background: var(--surface);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--surface-alt);
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        tr:last-child td { border-bottom: none; }
+
+        code {
+            background: var(--bg);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Monaco', monospace;
+            font-size: 0.85rem;
+        }
+
+        .endpoint-group {
+            background: var(--bg);
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+        }
+
+        .endpoint-group-title {
+            color: var(--accent);
+            font-weight: bold;
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-link">← Back to Home</a>
+
+    <h1>⚙️ Admin & Staff Management</h1>
+    <p class="subtitle">Complete endpoint reference for admin and staff operations and loan processing</p>
+
+    <!-- User Management -->
+    <div class="section">
+        <div class="section-title">
+            <div class="section-number">1</div>
+            <h2>User Management</h2>
+            <span class="role-badge">Admin • Staff</span>
+        </div>
+        <p>View, filter, and manage customer and staff user accounts</p>
+        <div class="endpoints">
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/users</div>
+                    <div class="endpoint-desc">List all users (paginated). Filter by role, status, etc.</div>
+                </div>
+            </div>
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/users/{id}</div>
+                    <div class="endpoint-desc">Get specific user details with roles and profiles</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Management -->
+    <div class="section">
+        <div class="section-title">
+            <div class="section-number">2</div>
+            <h2>Account Management</h2>
+            <span class="role-badge">Admin • Staff</span>
+        </div>
+        <p>View and manage customer accounts (Wallet, Savings, Loan Repayment, etc.)</p>
+        <div class="endpoints">
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/accounts</div>
+                    <div class="endpoint-desc">List all customer accounts. Filter by status, type, customer</div>
+                </div>
+            </div>
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/accounts/{id}</div>
+                    <div class="endpoint-desc">Get account details with balance and transactions</div>
+                </div>
+            </div>
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/users/{user}/accounts</div>
+                    <div class="endpoint-desc">List all accounts for specific customer</div>
+                </div>
+            </div>
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/users/{user}/accounts/{account}</div>
+                    <div class="endpoint-desc">Get specific user account details</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Types Management -->
+    <div class="section">
+        <div class="section-title">
+            <div class="section-number">3</div>
+            <h2>Account Types Management</h2>
+            <span class="role-badge">Admin Only</span>
+        </div>
+        <p>View and manage account type definitions (Wallet, Savings, Loan Repay, etc.)</p>
+        <div class="endpoints">
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/account-types</div>
+                    <div class="endpoint-desc">List all account types available to customers</div>
+                </div>
+            </div>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/account-types</div>
+                    <div class="endpoint-desc">Create new account type with constraints</div>
+                </div>
+            </div>
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/account-types/{id}</div>
+                    <div class="endpoint-desc">Get account type details</div>
+                </div>
+            </div>
+        </div>
+        <div class="note">
+            ℹ️ Examples: WAL (Wallet), SAV (Savings), LOAN_REPAY (Loan Repayment with overdraft capability)
+        </div>
+    </div>
+
+    <!-- Loan Products Management -->
+    <div class="section">
+        <div class="section-title">
+            <div class="section-number">4</div>
+            <h2>Loan Products Management</h2>
+            <span class="role-badge">Admin Only</span>
+        </div>
+        <p>Create and manage loan product offerings with requirements and constraints</p>
+        <div class="endpoints">
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/loan-products</div>
+                    <div class="endpoint-desc">List all loan products</div>
+                </div>
+            </div>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/loan-products</div>
+                    <div class="endpoint-desc">Create new loan product with terms and requirements</div>
+                </div>
+            </div>
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/loan-products/{id}</div>
+                    <div class="endpoint-desc">Get loan product details including requirements</div>
+                </div>
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Purpose</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>min_amount</code></td>
+                    <td>Numeric</td>
+                    <td>Minimum loan amount allowed</td>
+                </tr>
+                <tr>
+                    <td><code>max_amount</code></td>
+                    <td>Numeric</td>
+                    <td>Maximum loan amount allowed</td>
+                </tr>
+                <tr>
+                    <td><code>tenure_min_months</code></td>
+                    <td>Integer</td>
+                    <td>Minimum repayment period in months</td>
+                </tr>
+                <tr>
+                    <td><code>tenure_max_months</code></td>
+                    <td>Integer</td>
+                    <td>Maximum repayment period in months</td>
+                </tr>
+                <tr>
+                    <td><code>interest_rate</code></td>
+                    <td>Numeric</td>
+                    <td>Interest rate percentage</td>
+                </tr>
+                <tr>
+                    <td><code>requires_guarantor</code></td>
+                    <td>Boolean</td>
+                    <td>Whether loan requires guarantors</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Loan Applications Review -->
+    <div class="section">
+        <div class="section-title">
+            <div class="section-number">5</div>
+            <h2>Loan Applications Review & Processing</h2>
+            <span class="role-badge">Admin • Staff</span>
+        </div>
+        <p>Review customer loan applications, verify eligibility, and make approval/rejection decisions</p>
+        
+        <h3>View Loan Applications</h3>
+        <div class="endpoints">
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/loan-applications</div>
+                    <div class="endpoint-desc">List all loan applications. Filter by status (draft, submitted, approved, rejected)</div>
+                </div>
+            </div>
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/loan-applications/{id}</div>
+                    <div class="endpoint-desc">Get specific loan application with full details</div>
+                </div>
+            </div>
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/users/{user}/loan-applications</div>
+                    <div class="endpoint-desc">View all applications for specific customer</div>
+                </div>
+            </div>
+        </div>
+
+        <h3>Verify & Process Applications</h3>
+        <div class="endpoints">
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/loan-applications/{id}/verify</div>
+                    <div class="endpoint-desc">Approve and move application to 'approved' status</div>
+                </div>
+            </div>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/loan-applications/{id}/reject</div>
+                    <div class="endpoint-desc">Reject application with reason. Status: 'rejected'</div>
+                </div>
+            </div>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/users/{user}/loan-applications/{id}/verify</div>
+                    <div class="endpoint-desc">Approve specific user's application</div>
+                </div>
+            </div>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/users/{user}/loan-applications/{id}/reject</div>
+                    <div class="endpoint-desc">Reject specific user's application with reason</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="note">
+            ⚠️ Verification checks: Customer KYC must be 'verified', all required application documents uploaded and verified, amount within product constraints, tenure within product range, loan product requirements met
+        </div>
+    </div>
+
+    <!-- Loans Management -->
+    <div class="section">
+        <div class="section-title">
+            <div class="section-number">6</div>
+            <h2>Loans Management & Disbursement</h2>
+            <span class="role-badge">Admin • Staff</span>
+        </div>
+        <p>Manage disbursed loans, track repayments, and handle loan lifecycle</p>
+        
+        <h3>View Loans</h3>
+        <div class="endpoints">
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/loans</div>
+                    <div class="endpoint-desc">List all disbursed loans. Filter by status, customer, product</div>
+                </div>
+            </div>
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/loans/{id}</div>
+                    <div class="endpoint-desc">Get loan details with repayment schedule and balance</div>
+                </div>
+            </div>
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/users/{user}/loans</div>
+                    <div class="endpoint-desc">View all loans for specific customer</div>
+                </div>
+            </div>
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/users/{user}/loans/{id}</div>
+                    <div class="endpoint-desc">Get specific user loan details</div>
+                </div>
+            </div>
+        </div>
+
+        <h3>Loan Operations</h3>
+        <div class="endpoints">
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/loans/{id}/approve</div>
+                    <div class="endpoint-desc">Approve loan application and create loan record</div>
+                </div>
+            </div>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/loans/{id}/disburse</div>
+                    <div class="endpoint-desc">Disburse approved loan to customer's LOAN_REPAY account</div>
+                </div>
+            </div>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/loans/{id}/repay</div>
+                    <div class="endpoint-desc">Record loan repayment from customer</div>
+                </div>
+            </div>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/loans/{id}/reject</div>
+                    <div class="endpoint-desc">Reject loan application with reason</div>
+                </div>
+            </div>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/loans/{id}/restructure</div>
+                    <div class="endpoint-desc">Modify loan terms (tenure, rate, etc.)</div>
+                </div>
+            </div>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/loans/{id}/writeoff</div>
+                    <div class="endpoint-desc">Write off loan (bad debt)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="note">
+            ℹ️ Upon disbursement: Ledger entries created, repayment schedule generated, LOAN_REPAY account credited, referrer receives commission notification
+        </div>
+    </div>
+
+    <!-- KYC Management -->
+    <div class="section">
+        <div class="section-title">
+            <div class="section-number">7</div>
+            <h2>KYC & Document Verification</h2>
+            <span class="role-badge">Admin • Staff</span>
+        </div>
+        <p>Review customer KYC documents and verify identity for loan eligibility. Handle both core KYC and application-specific documents.</p>
+        
+        <h3>Core KYC Documents (Customer Identity)</h3>
+        <div class="endpoints">
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/kyc</div>
+                    <div class="endpoint-desc">List all customer KYC profiles. Filter by status (pending, verified, rejected)</div>
+                </div>
+            </div>
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/kyc/{profile}</div>
+                    <div class="endpoint-desc">View customer core KYC documents and status</div>
+                </div>
+            </div>
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/customers/{user}/kyc</div>
+                    <div class="endpoint-desc">View specific customer core KYC details</div>
+                </div>
+            </div>
+        </div>
+
+        <h3>Per-Document KYC Verification</h3>
+        <div class="endpoints">
+            <div class="endpoint patch">
+                <span class="method patch">PATCH</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/kyc/{profile}/documents/{document_type}/verify</div>
+                    <div class="endpoint-desc">Verify specific KYC document (passport_photo, id_card_front, id_card_back)</div>
+                </div>
+            </div>
+            <div class="endpoint patch">
+                <span class="method patch">PATCH</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/kyc/{profile}/documents/{document_type}/reject</div>
+                    <div class="endpoint-desc">Reject specific KYC document with reason</div>
+                </div>
+            </div>
+        </div>
+
+        <h3>Application-Scoped Documents</h3>
+        <div class="endpoints">
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/loan-applications/{application}/documents</div>
+                    <div class="endpoint-desc">View all documents uploaded for specific loan application</div>
+                </div>
+            </div>
+            <div class="endpoint patch">
+                <span class="method patch">PATCH</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/loan-applications/{application}/documents/{document}/verify</div>
+                    <div class="endpoint-desc">Verify application document (collateral, guarantor notes, etc.)</div>
+                </div>
+            </div>
+            <div class="endpoint patch">
+                <span class="method patch">PATCH</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/loan-applications/{application}/documents/{document}/reject</div>
+                    <div class="endpoint-desc">Reject application document with reason</div>
+                </div>
+            </div>
+        </div>
+
+        <h3>KYC Profile Management</h3>
+        <div class="endpoints">
+            <div class="endpoint patch">
+                <span class="method patch">PATCH</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/kyc/{profile}/verify</div>
+                    <div class="endpoint-desc">Approve entire customer KYC profile. Status: 'verified'</div>
+                </div>
+            </div>
+            <div class="endpoint patch">
+                <span class="method patch">PATCH</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/kyc/{profile}/reject</div>
+                    <div class="endpoint-desc">Reject entire KYC profile with reason. Status: 'rejected'</div>
+                </div>
+            </div>
+            <div class="endpoint patch">
+                <span class="method patch">PATCH</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/kyc/{profile}</div>
+                    <div class="endpoint-desc">Update KYC profile (admin only)</div>
+                </div>
+            </div>
+            <div class="endpoint delete">
+                <span class="method delete">DELETE</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/kyc/{profile}</div>
+                    <div class="endpoint-desc">Delete KYC profile (admin only)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="note">
+            ℹ️ Core KYC documents (passport, ID cards) are shared across all applications. Application documents (collateral, guarantor notes) are specific to each loan application.
+        </div>
+        <div class="note warning">
+            ⚠️ Document verification is required before loan approval. Use per-document endpoints for granular control over verification status.
+        </div>
+    </div>
+
+    <!-- Customer Profile Management -->
+    <div class="section">
+        <div class="section-title">
+            <div class="section-number">8</div>
+            <h2>Customer Profile Management</h2>
+            <span class="role-badge">Admin • Staff</span>
+        </div>
+        <p>Manage customer profile information and KYC eligibility status</p>
+        <div class="endpoints">
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/customer-profiles</div>
+                    <div class="endpoint-desc">List all customer profiles (admin/staff only)</div>
+                </div>
+            </div>
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/customer-profiles/{id}</div>
+                    <div class="endpoint-desc">Get customer profile details</div>
+                </div>
+            </div>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/customer-profiles</div>
+                    <div class="endpoint-desc">Create customer profile for user (admin/staff only)</div>
+                </div>
+            </div>
+            <div class="endpoint patch">
+                <span class="method patch">PATCH</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/customer-profiles/{id}</div>
+                    <div class="endpoint-desc">Update customer profile (admin/staff only)</div>
+                </div>
+            </div>
+            <div class="endpoint patch">
+                <span class="method patch">PATCH</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/customer-profiles/{id}/kyc-status</div>
+                    <div class="endpoint-desc">Change KYC status (pending/verified/rejected). Admin/staff only</div>
+                </div>
+            </div>
+            <div class="endpoint delete">
+                <span class="method delete">DELETE</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/customer-profiles/{id}</div>
+                    <div class="endpoint-desc">Delete customer profile (admin only)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: 3rem; padding: 1.5rem; background: var(--surface-alt); border-radius: 8px;">
+        <h3>Authentication & Authorization</h3>
+        <p>All endpoints require JWT token in Authorization header. Role-based access control:</p>
+        <table style="margin-top: 1rem;">
+            <thead>
+                <tr>
+                    <th>Role</th>
+                    <th>Permissions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Admin</strong></td>
+                    <td>Full access - create/update/delete account types, loan products, manage all users and loans</td>
+                </tr>
+                <tr>
+                    <td><strong>Staff</strong></td>
+                    <td>View users/accounts/loans, verify/reject KYC and applications, process disbursements</td>
+                </tr>
+                <tr>
+                    <td><strong>Secretary</strong></td>
+                    <td>Read-only access to customer profiles and KYC documents</td>
+                </tr>
+                <tr>
+                    <td><strong>Marketer</strong></td>
+                    <td>View referral data and customer information</td>
+                </tr>
+            </tbody>
+        </table>
+        <p style="margin-top: 1rem; font-family: monospace; background: var(--bg); padding: 0.75rem; border-radius: 4px;">
+            Authorization: Bearer {jwt_token}
+        </p>
+    </div>
+</body>
+</html>

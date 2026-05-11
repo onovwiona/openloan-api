@@ -279,13 +279,12 @@ class AccountController extends Controller
     /**
      * GET /users/{user_id}/accounts - Get user's accounts
      */
-    public function userAccounts(Request $request, string $userId): JsonResponse
+    public function userAccounts(Request $request, User $user): JsonResponse
     {
-        $user = User::findOrFail($userId);
-        Gate::authorize('view', $user);
+        Gate::authorize('viewAccountsForUser', $user);
 
         $accounts = Account::with(['accountType', 'balance'])
-            ->where('customer_id', $userId)
+            ->where('customer_id', $user->id)
             ->when($request->status, fn($q, $s) => $q->where('status', $s))
             ->orderBy('created_at', 'desc')
             ->get();
@@ -314,7 +313,7 @@ class AccountController extends Controller
     public function userAccountStatement(Request $request, string $userId, string $id): JsonResponse
     {
         $user = User::findOrFail($userId);
-        Gate::authorize('view', $user);
+        Gate::authorize('viewAccountsForUser', $user);
 
         $startDate = $request->start_date ?? now()->startOfMonth()->toDateString();
         $endDate = $request->end_date ?? now()->endOfMonth()->toDateString();
@@ -322,6 +321,120 @@ class AccountController extends Controller
         $statement = $this->accountService->getStatement($id, $startDate, $endDate);
 
         return response()->json(['success' => true, 'data' => $statement]);
+    }
+
+    /**
+     * GET /user/accounts/{account}/statement - Get authenticated user's account statement
+     */
+    public function myAccountStatement(Request $request, string $accountId): JsonResponse
+    {
+        $user = $request->user();
+
+        $account = Account::where('customer_id', $user->id)->findOrFail($accountId);
+
+        $startDate = $request->start_date ?? now()->startOfMonth()->toDateString();
+        $endDate = $request->end_date ?? now()->endOfMonth()->toDateString();
+
+        $statement = $this->accountService->getStatement($accountId, $startDate, $endDate);
+
+        return response()->json(['success' => true, 'data' => $statement]);
+    }
+
+    /**
+     * GET /user/accounts/{account}/transactions - Get my account transactions
+     */
+    public function myAccountTransactions(Request $request, string $accountId): JsonResponse
+    {
+        $user = $request->user();
+
+        $account = Account::where('customer_id', $user->id)->findOrFail($accountId);
+
+        $startDate = $request->start_date ?? now()->startOfMonth()->toDateString();
+        $endDate = $request->end_date ?? now()->endOfMonth()->toDateString();
+
+        $transactions = $this->accountService->getTransactions($accountId, $startDate, $endDate);
+
+        return response()->json(['success' => true, 'data' => $transactions]);
+    }
+
+    /**
+     * POST /users/{user}/accounts - Create account for user (self-service)
+     */
+    public function storeAccountForUser(Request $request, User $user): JsonResponse
+    {
+        Gate::authorize('createAccountForUser', $user);
+
+        $validator = Validator::make($request->all(), [
+            'account_type_id' => 'required|uuid|exists:account_types,id',
+            'name' => 'nullable|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $account = $this->accountService->createAccount(
+            $user->id,
+            $request->account_type_id,
+            $request->name
+        );
+
+        return response()->json(['success' => true, 'message' => 'Account created', 'data' => $account], 201);
+    }
+
+    /**
+     * GET /user/accounts - Get authenticated user's accounts
+     */
+    public function myAccounts(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $accounts = Account::with(['accountType', 'balance'])
+            ->where('customer_id', $user->id)
+            ->when($request->status, fn($q, $s) => $q->where('status', $s))
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json(['success' => true, 'data' => $accounts]);
+    }
+
+    /**
+     * GET /user/accounts/{id} - Get authenticated user's specific account
+     */
+    public function myAccount(Request $request, string $accountId): JsonResponse
+    {
+        $user = $request->user();
+
+        $account = Account::with(['accountType', 'balance', 'limits'])
+            ->where('customer_id', $user->id)
+            ->findOrFail($accountId);
+
+        return response()->json(['success' => true, 'data' => $account]);
+    }
+
+    /**
+     * POST /user/accounts - Create account for authenticated user
+     */
+    public function createMyAccount(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $validator = Validator::make($request->all(), [
+            'account_type_id' => 'required|uuid|exists:account_types,id',
+            'name' => 'nullable|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $account = $this->accountService->createAccount(
+            $user->id,
+            $request->account_type_id,
+            $request->name
+        );
+
+        return response()->json(['success' => true, 'message' => 'Account created', 'data' => $account], 201);
     }
 }
 

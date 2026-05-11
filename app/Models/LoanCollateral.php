@@ -22,6 +22,7 @@ class LoanCollateral extends Model
         'document_type',
         'status',
         'verification_notes',
+        'rejection_reason',
     ];
 
     protected $casts = [

@@ -19,6 +19,7 @@ use App\Models\ReferralCode;
 use App\Models\ReferralEdge;
 use App\Models\Account;
 use App\Models\Transaction;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 
 #[Fillable(['name', 'email', 'password'])]
@@ -43,7 +44,7 @@ class User extends Authenticatable implements JWTSubject
         return $this->roles()->with('permissions')->get()->pluck('permissions')->flatten()->pluck('name')->unique();
     }
 
-    public function customerProfile()
+    public function customerProfile(): HasOne
     {
         return $this->hasOne(CustomerProfile::class);
     }
@@ -70,7 +71,12 @@ class User extends Authenticatable implements JWTSubject
 
     public function accounts()
     {
-        return $this->hasMany(Account::class);
+        return $this->hasMany(Account::class, 'customer_id');
+    }
+
+    public function loanApplications()
+    {
+        return $this->hasMany(LoanApplication::class, 'customer_id');
     }
 
     // public function transactions(){

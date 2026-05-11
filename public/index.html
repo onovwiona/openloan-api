@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenDoor API - Documentation Hub</title>
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --surface: #1a1a1a;
+            --surface-alt: #2a2a2a;
+            --text: #f0f0f0;
+            --text-dim: #a0a0a0;
+            --accent: #4f46e5;
+            --accent-alt: #8b5cf6;
+            --success: #10b981;
+            --border: #333;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--bg) 0%, #0f0f0f 100%);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        h1 {
+            font-size: 3rem;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-alt) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .tagline {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+        }
+
+        .api-version {
+            display: inline-block;
+            background: var(--surface-alt);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: var(--accent);
+            border: 1px solid var(--border);
+        }
+
+        .docs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            background: var(--surface-alt);
+            border-color: var(--accent);
+            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.1);
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .card-description {
+            color: var(--text-dim);
+            flex-grow: 1;
+        }
+
+        .card-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--accent);
+            font-weight: 500;
+            margin-top: auto;
+            transition: gap 0.3s;
+        }
+
+        .card:hover .card-link {
+            gap: 0.75rem;
+        }
+
+        .resources {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .resources h2 {
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .resource-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .resource-item {
+            background: var(--surface-alt);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 3px solid var(--accent);
+            transition: transform 0.2s;
+        }
+
+        .resource-item:hover {
+            transform: translateX(4px);
+        }
+
+        .resource-item a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .resource-item a:hover {
+            text-decoration: underline;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .feature {
+            background: var(--surface-alt);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .feature-title {
+            color: var(--accent);
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-desc {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        footer {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 OpenDoor Fintech API</h1>
+            <p class="tagline">Complete Lending & Account Management Solution</p>
+            <span class="api-version">API v1</span>
+        </header>
+
+        <div class="feature-grid">
+            <div class="feature">
+                <div class="feature-title">✓ Multi-Role Support</div>
+                <div class="feature-desc">Customer, Admin, Staff, Secretary, Marketer roles with role-based access control</div>
+            </div>
+            <div class="feature">
+                <div class="feature-title">✓ Complete Loan Lifecycle</div>
+                <div class="feature-desc">From application through disbursement with KYC verification and repayment tracking</div>
+            </div>
+            <div class="feature">
+                <div class="feature-title">✓ Multi-Account Support</div>
+                <div class="feature-desc">Wallet, Savings, Loan Repayment, and custom account types with full ledger tracking</div>
+            </div>
+            <div class="feature">
+                <div class="feature-title">✓ Referral Program</div>
+                <div class="feature-desc">Referral code system with commission tracking and eligibility management</div>
+            </div>
+            <div class="feature">
+                <div class="feature-title">✓ KYC & Verification</div>
+                <div class="feature-desc">Document upload, admin verification, and eligibility status management</div>
+            </div>
+            <div class="feature">
+                <div class="feature-title">✓ Loan Product Management</div>
+                <div class="feature-desc">Flexible loan products with configurable terms, rates, and requirements</div>
+            </div>
+        </div>
+
+        <div class="docs-grid">
+            <a href="/customer-lifecycle.html" class="card">
+                <div class="card-icon">👤</div>
+                <div class="card-title">Customer Lifecycle</div>
+                <div class="card-description">
+                    Complete journey for customers from registration through loan application, KYC verification, and disbursement. Includes account creation, loan product browsing, and repayment scheduling.
+                </div>
+                <div class="card-link">
+                    View Documentation →
+                </div>
+            </a>
+
+            <a href="/admin-lifecycle.html" class="card">
+                <div class="card-icon">⚙️</div>
+                <div class="card-title">Admin & Staff Guide</div>
+                <div class="card-description">
+                    Comprehensive guide for admin and staff operations including user management, account administration, KYC verification, loan application processing, and disbursement management.
+                </div>
+                <div class="card-link">
+                    View Documentation →
+                </div>
+            </a>
+
+            <a href="/lifecycle.html" class="card">
+                <div class="card-icon">📋</div>
+                <div class="card-title">Complete API Overview</div>
+                <div class="card-description">
+                    Full API specification with all endpoints, authentication details, request/response formats, and error handling. Includes testing examples and code samples.
+                </div>
+                <div class="card-link">
+                    View Documentation →
+                </div>
+            </a>
+        </div>
+
+        <div class="resources">
+            <h2>Base URL</h2>
+            <div class="resource-list">
+                <div class="resource-item">
+                    Development: <code style="color: var(--text-dim);">http://localhost:8000/api/v1</code>
+                </div>
+                <div class="resource-item">
+                    Production: <code style="color: var(--text-dim);">https://api.opendoor.local/v1</code>
+                </div>
+            </div>
+        </div>
+
+        <div class="resources">
+            <h2>Quick Links</h2>
+            <div class="resource-list">
+                <div class="resource-item">
+                    <a href="/openapi.yaml">OpenAPI/Swagger Spec</a>
+                </div>
+                <div class="resource-item">
+                    <a href="/docs.html">API Documentation</a>
+                </div>
+                <div class="resource-item">
+                    <a href="https://github.com/opendoor/backend-api">GitHub Repository</a>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2026 OpenDoor Fintech. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>

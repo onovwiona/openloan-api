@@ -39,6 +39,7 @@ class LoanProductFactory extends Factory
             'requires_guarantor' => false,
             'min_guarantors' => 0,
             'requires_collateral' => false,
+            'requires_passport' => false,
             'active' => true,
         ];
     }
