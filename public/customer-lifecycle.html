@@ -147,6 +147,74 @@
 
         .back-link:hover { background: var(--accent); color: white; }
 
+        .toggle-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--accent);
+            background: transparent;
+            color: var(--accent);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .toggle-button:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .payload {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+            font-size: 0.95rem;
+            overflow: auto;
+            max-width: 100%;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .payload code, .payload pre {
+            background: #111;
+            color: #f8f8f2;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            margin: 0;
+        }
+
+        .endpoint-sample {
+            background: #111;
+            border: 1px solid var(--border);
+            padding: 0.3rem;
+            margin-top: 0.1rem;
+            border-radius: 3px;
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            overflow: auto;
+            max-width: 100%;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .endpoint-sample pre {
+            background: inherit;
+            color: inherit;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            margin: 0;
+            padding: 0.25rem;
+            line-height: 1.2;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -184,6 +252,7 @@
 
     <h1>🛍️ Customer Lifecycle</h1>
     <p class="subtitle">Complete journey from registration to loan approval, document uploads, and repayment</p>
+    <button class="toggle-button sample-toggle" onclick="toggleSamples()">Show sample usage & payloads</button>
 
     <div class="lifecycle-flow">
         <!-- Stage 1: Registration & Referral -->
@@ -282,6 +351,13 @@
                         <div class="endpoint-desc">View account statement and transactions</div>
                     </div>
                 </div>
+                <div class="endpoint get">
+                    <span class="method get">GET</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/accounts/{account}/transactions</div>
+                        <div class="endpoint-desc">View individual account transactions</div>
+                    </div>
+                </div>
             </div>
             <div class="note">
                 ⚠️ LOAN_REPAY account type is required for loan applications. System auto-creates one per application if needed.
@@ -294,44 +370,141 @@
                 <div class="stage-number">4</div>
                 <h2>Upload Core KYC Documents</h2>
             </div>
-            <p>Customer uploads identity documents (passport photos, ID cards) that persist across all loan applications</p>
+            <p>Customer uploads persistent identity documents (passport, ID card, driver license) that can be reused across loan applications</p>
             <div class="endpoints">
                 <div class="endpoint post">
                     <span class="method post">POST</span>
                     <div class="endpoint-info">
                         <div class="endpoint-path">/api/v1/user/kyc</div>
-                        <div class="endpoint-desc">Upload core KYC documents (passport_photo, id_card_front, id_card_back)</div>
+                        <div class="endpoint-desc">Upload persistent core KYC documents (passport_document, id_card_front, id_card_back, driver_license, utility_bill)</div>
                     </div>
                 </div>
                 <div class="endpoint post">
                     <span class="method post">POST</span>
                     <div class="endpoint-info">
-                        <div class="endpoint-path">/api/v1/user/kyc/single/{document_type}</div>
-                        <div class="endpoint-desc">Upload single KYC document (passport_photo, id_card_front, id_card_back)</div>
+                        <div class="endpoint-path">/api/v1/user/kyc/documents</div>
+                        <div class="endpoint-desc">Upload individual core KYC documents into the customer KYC profile</div>
+                    </div>
+                </div>
+                <div class="endpoint get">
+                    <span class="method get">GET</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/kyc/employment-profiles</div>
+                        <div class="endpoint-desc">Get the customer's employment profile and uploaded employment documents</div>
+                    </div>
+                </div>
+                <div class="endpoint post">
+                    <span class="method post">POST</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/kyc/employment-profiles</div>
+                            <div class="endpoint-desc">Create employment profile for KYC with payslip, employer ID number, and employment letter (employment/payroll fields are used server-side to populate loan applications)</div>
+                    </div>
+                </div>
+                <div class="endpoint patch">
+                    <span class="method patch">PATCH</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/kyc/employment-profiles</div>
+                        <div class="endpoint-desc">Update employment profile details and income information</div>
+                    </div>
+                </div>
+                <div class="endpoint post">
+                    <span class="method post">POST</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/kyc/employment-profiles/documents</div>
+                        <div class="endpoint-desc">Upload employment-related KYC documents (payslip_document, employer_id_card, employment_letter)</div>
+                    </div>
+                </div>
+                <div class="endpoint patch">
+                    <span class="method patch">PATCH</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/kyc/employment-profiles/documents</div>
+                        <div class="endpoint-desc">Update employment document uploads for the customer's employment profile</div>
+                    </div>
+                </div>
+                <div class="endpoint get">
+                    <span class="method get">GET</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/kyc/documents</div>
+                        <div class="endpoint-desc">List all core KYC documents uploaded for the customer</div>
+                    </div>
+                </div>
+                <div class="endpoint delete">
+                    <span class="method delete">DELETE</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/kyc/documents/{document}</div>
+                        <div class="endpoint-desc">Remove an uploaded KYC document before verification</div>
+                    </div>
+                </div>
+                <div class="endpoint post">
+                    <span class="method post">POST</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/kyc/passport-document</div>
+                        <div class="endpoint-desc">Upload persistent passport document for KYC profile</div>
+                    </div>
+                </div>
+                <div class="endpoint post">
+                    <span class="method post">POST</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/kyc/id-card</div>
+                        <div class="endpoint-desc">Upload persistent ID card document for KYC profile</div>
+                    </div>
+                </div>
+                <div class="endpoint post">
+                    <span class="method post">POST</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/kyc/passport-photo</div>
+                        <div class="endpoint-desc">Upload passport photo as part of the customer's persistent KYC profile</div>
+                    </div>
+                </div>
+                <div class="endpoint post">
+                    <span class="method post">POST</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/kyc/guarantor-form</div>
+                        <div class="endpoint-desc">Deprecated. Use loan application document upload endpoint instead.</div>
                     </div>
                 </div>
                 <div class="endpoint get">
                     <span class="method get">GET</span>
                     <div class="endpoint-info">
                         <div class="endpoint-path">/api/v1/user/kyc</div>
-                        <div class="endpoint-desc">View KYC status and uploaded core documents</div>
+                        <div class="endpoint-desc">View persistent KYC profile and uploaded documents</div>
                     </div>
                 </div>
             </div>
             <div class="note info">
                 ℹ️ Core KYC documents are shared across all loan applications. Upload once, use everywhere.
             </div>
-            <div class="note warning">
-                ⚠️ Duplicate uploads are prevented while documents are pending verification. KYC must be 'verified' before loan submission.
+            <div class="note info">
+                ℹ️ Employment KYC adds a second profile for employer proof and payslips. Supported documents include <code>payslip_document</code>, <code>employment_letter</code>, and <code>employer_id_card</code>.
             </div>
-            <div class="payload">
-                <span class="payload-label">Sample KYC Upload Payload:</span>
-                <pre>{
-  "documents": {
-    "passport_photo": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQ...",
-    "id_card_front": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQ..."
-  }
-}</pre>
+            <div class="note warning">
+                ⚠️ Duplicate uploads are prevented while documents are pending verification. Rejected KYC documents may be replaced by uploading the same document type again.
+            </div>
+            <div class="note">
+                ℹ️ Passport photo may be uploaded through the customer KYC profile via <code>POST /api/v1/user/kyc/passport-photo</code>. Application-specific documents still use <code>POST /api/v1/user/loan-applications/{application}/documents</code>.
+            </div>
+            <div class="payload hidden">
+                <span class="payload-label">Sample KYC Bulk Upload Form-Data (POST /api/v1/user/kyc):</span>
+                <pre>documents[0][type] = passport_document
+documents[0][file] = @/path/to/passport.pdf
+
+documents[1][type] = id_card_front
+documents[1][file] = @/path/to/id_card_front.jpg
+
+documents[2][type] = id_card_back
+documents[2][file] = @/path/to/id_card_back.jpg</pre>
+                <span class="payload-label">Sample Single Document Upload Form-Data (POST /api/v1/user/kyc/documents):</span>
+                <pre>document_type = utility_bill
+document = @/path/to/utility-bill.pdf</pre>
+                <span class="payload-label">Sample Single File Upload Form-Data:</span>
+                <pre>POST /api/v1/user/kyc/passport-document
+file = @/path/to/passport.pdf
+
+POST /api/v1/user/kyc/id-card
+file = @/path/to/id-card.jpg
+
+POST /api/v1/user/kyc/passport-photo
+file = @/path/to/passport-photo.png</pre>
             </div>
         </div>
 
@@ -394,6 +567,16 @@
                         <td>Integer</td>
                         <td>Repayment tenure in months (must be within product range)</td>
                     </tr>
+                    <tr>
+                        <td><code>repayment_plan</code></td>
+                        <td>Enum</td>
+                        <td>Repayment frequency: <code>monthly</code>, <code>weekly</code>, <code>quarterly</code>, <code>annually</code>. Required for most products; optional for government loans (defaults to <code>monthly</code>).</td>
+                    </tr>
+                    <tr>
+                        <td><code>employer_id_number</code></td>
+                        <td>String</td>
+                        <td>Employer ID number is taken from the customer's employment profile when available. Client-provided values will be ignored in favor of verified profile data.</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -409,29 +592,57 @@
                 <div class="endpoint post">
                     <span class="method post">POST</span>
                     <div class="endpoint-info">
-                        <div class="endpoint-path">/api/v1/user/loan-applications/{application_id}/documents</div>
-                        <div class="endpoint-desc">Upload general application documents (business_plan, income_proof, etc.)</div>
+                        <div class="endpoint-path">/api/v1/user/loan-applications/{application}/documents</div>
+                        <div class="endpoint-desc">Upload application-specific documents (guarantor_form, bank_statement, proof_income)</div>
                     </div>
                 </div>
                 <div class="endpoint post">
                     <span class="method post">POST</span>
                     <div class="endpoint-info">
-                        <div class="endpoint-path">/api/v1/user/loan-applications/{application_id}/collateral</div>
-                        <div class="endpoint-desc">Upload collateral documents (PDF only) for secured loans</div>
+                        <div class="endpoint-path">/api/v1/user/loan-applications/{application}/collateral</div>
+                        <div class="endpoint-desc">Upload collateral documents (single file upload) for secured loans</div>
                     </div>
                 </div>
                 <div class="endpoint post">
                     <span class="method post">POST</span>
                     <div class="endpoint-info">
-                        <div class="endpoint-path">/api/v1/user/loan-applications/{application_id}/guarantors/{guarantor_id}/notes</div>
+                        <div class="endpoint-path">/api/v1/user/loan-applications/{application}/collaterals</div>
+                        <div class="endpoint-desc">Upload additional collateral documents (alias endpoint for multiple collateral uploads)</div>
+                    </div>
+                </div>
+                <div class="endpoint post">
+                    <span class="method post">POST</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/loan-applications/{application}/guarantors</div>
+                        <div class="endpoint-desc">Add a guarantor to the loan application</div>
+                    </div>
+                </div>
+                <div class="endpoint post">
+                    <span class="method post">POST</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/loan-applications/{application}/guarantors/{guarantor}/notes</div>
                         <div class="endpoint-desc">Upload guarantor notes (PDF or photos) for loans requiring guarantors</div>
                     </div>
                 </div>
                 <div class="endpoint get">
                     <span class="method get">GET</span>
                     <div class="endpoint-info">
-                        <div class="endpoint-path">/api/v1/user/loan-applications/{application_id}/documents</div>
+                        <div class="endpoint-path">/api/v1/user/loan-applications/{application}/documents</div>
                         <div class="endpoint-desc">View all documents uploaded for this loan application</div>
+                    </div>
+                </div>
+                <div class="endpoint get">
+                    <span class="method get">GET</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/loan-applications/{application}/collaterals</div>
+                        <div class="endpoint-desc">View collateral documents uploaded for this loan application</div>
+                    </div>
+                </div>
+                <div class="endpoint get">
+                    <span class="method get">GET</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/loan-applications/{application}/guarantors</div>
+                        <div class="endpoint-desc">View guarantors added to this loan application</div>
                     </div>
                 </div>
             </div>
@@ -441,19 +652,33 @@
             <div class="note warning">
                 ⚠️ Document requirements depend on the loan product selected. Check product details for mandatory uploads.
             </div>
-            <div class="payload">
-                <span class="payload-label">Sample Collateral Upload Payload:</span>
+            <div class="payload hidden">
+                <span class="payload-label">Sample Loan Application Document Upload Payload (POST /api/v1/user/loan-applications/{application}/documents):</span>
                 <pre>{
-  "document": "data:application/pdf;base64,JVBERi0xLjQKJ...",
-  "document_type": "title_deed",
-  "description": "Property title deed for collateral"
+  "document_type": "proof_income",
+  "file": "@/path/to/income-proof.pdf"
 }</pre>
-            </div>
-            <div class="payload">
-                <span class="payload-label">Sample Guarantor Notes Upload Payload:</span>
+                <span class="payload-label">Sample Collateral Upload Payload (POST /api/v1/user/loan-applications/{application}/collateral):</span>
                 <pre>{
-  "note_1": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQ...",
-  "note_2": "data:application/pdf;base64,JVBERi0xLjQKJ..."
+  "type": "land_title",
+  "description": "Property title deed for collateral",
+  "estimated_value": 1200000,
+  "file": "@/path/to/land-title.pdf"
+}</pre>
+                <span class="payload-label">Sample Add Guarantor Payload (POST /api/v1/user/loan-applications/{application}/guarantors):</span>
+                <pre>{
+  "name": "Jane Doe",
+  "phone": "+2348012345678",
+  "address": "123 Main St, Lagos",
+  "relationship": "friend",
+  "employer": "Acme Ltd",
+  "employer_phone": "+2348098765432",
+  "monthly_income": 450000
+}</pre>
+                <span class="payload-label">Sample Guarantor Note Upload Payload (POST /api/v1/user/loan-applications/{application}/guarantors/{guarantor}/notes):</span>
+                <pre>{
+  "note_type": "note_1",
+  "file": "@/path/to/guarantor-note.pdf"
 }</pre>
             </div>
         </div>
@@ -469,7 +694,7 @@
                 <div class="endpoint post">
                     <span class="method post">POST</span>
                     <div class="endpoint-info">
-                        <div class="endpoint-path">/api/v1/loan-applications/{id}/submit</div>
+                        <div class="endpoint-path">/api/v1/user/loan-applications/{id}/submit</div>
                         <div class="endpoint-desc">Submit application for admin review (KYC must be 'verified')</div>
                     </div>
                 </div>
@@ -500,7 +725,7 @@
                 <div class="stage-number">9</div>
                 <h2>Loan Disbursement</h2>
             </div>
-            <p>Admin/staff disburse approved loan to customer's LOAN_REPAY account. Referrer receives commission notification.</p>
+            <p>Admin/staff disburse approved loan. The net loan amount funds the customer's wallet first, while the LOAN_REPAY account balance increases by the loan principal to track outstanding loan balance. Referrer receives commission notification.</p>
             <div class="endpoints">
                 <div class="endpoint get">
                     <span class="method get">GET</span>
@@ -525,7 +750,75 @@
                 </div>
             </div>
             <div class="note">
-                ℹ️ Ledger entries generated. LOAN_REPAY account tracks all credit/debit transactions. Referrer receives commission via push notification.
+                ℹ️ Ledger entries generated. Funds hit the customer's wallet first; LOAN_REPAY tracks the loan transaction audit trail. Referrer receives commission via push notification.
+            </div>
+        </div>
+
+        <!-- Stage 9.5: Loan Repayment -->
+        <div class="stage">
+            <div class="stage-title">
+                <div class="stage-number">9.5</div>
+                <h2>Loan Repayment</h2>
+            </div>
+            <p>Customer makes loan repayments using wallet balance, either partial payments or full payoff</p>
+            <div class="endpoints">
+                <div class="endpoint get">
+                    <span class="method get">GET</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/loans/{id}/schedules</div>
+                        <div class="endpoint-desc">View loan repayment schedule with due dates and amounts</div>
+                    </div>
+                </div>
+                <div class="endpoint get">
+                    <span class="method get">GET</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/loans/{id}/repayments</div>
+                        <div class="endpoint-desc">View repayment history for this loan</div>
+                    </div>
+                </div>
+                <div class="endpoint post">
+                    <span class="method post">POST</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/loans/{id}/repayments</div>
+                        <div class="endpoint-desc">Make partial or full loan repayment from wallet</div>
+                    </div>
+                </div>
+                <div class="endpoint get">
+                    <span class="method get">GET</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/loans/{id}/payoff-quote</div>
+                        <div class="endpoint-desc">Get payoff quote with penalties and total amount due</div>
+                    </div>
+                </div>
+                <div class="endpoint post">
+                    <span class="method post">POST</span>
+                    <div class="endpoint-info">
+                        <div class="endpoint-path">/api/v1/user/loans/{id}/payoff</div>
+                        <div class="endpoint-desc">Process full loan payoff from wallet</div>
+                    </div>
+                </div>
+            </div>
+            <div class="note warning">
+                ⚠️ Repayments require sufficient balance in customer's wallet account. System validates balance before processing.
+            </div>
+            <div class="note info">
+                ℹ️ Payoff quotes include any applicable early repayment penalties. Quotes are valid for 24 hours.
+            </div>
+            <div class="payload hidden">
+                <span class="payload-label">Sample Repayment Payload:</span>
+                <pre>{
+  "source_account_id": "uuid-of-wallet-account",
+  "amount": 50000.00,
+  "payment_type": "partial",
+  "reference": "Monthly repayment"
+}</pre>
+            </div>
+            <div class="payload hidden">
+                <span class="payload-label">Sample Payoff Payload:</span>
+                <pre>{
+  "source_account_id": "uuid-of-wallet-account",
+  "reference": "Full loan payoff"
+}</pre>
             </div>
         </div>
 
@@ -569,5 +862,110 @@
             Authorization: Bearer {jwt_token}
         </p>
     </div>
+    <script>
+        function toggleSamples() {
+            const elements = document.querySelectorAll('.payload, .endpoint-sample');
+            elements.forEach(el => el.classList.toggle('hidden'));
+            document.querySelectorAll('.sample-toggle').forEach(btn => {
+                btn.textContent = btn.textContent.includes('Show') ? 'Hide sample usage & payloads' : 'Show sample usage & payloads';
+            });
+        }
+
+        function getPayloadForEndpoint(method, path) {
+            const payloads = {
+                'POST /api/v1/register': { email: 'user@example.com', password: 'SecurePassword123!', referral_code: 'REF123' },
+                'POST /api/v1/login': { email: 'user@example.com', password: 'SecurePassword123!' },
+                'POST /api/v1/user/accounts': { account_type_id: 'uuid-of-account-type', initial_balance: 0 },
+                'POST /api/v1/user/kyc': { 'documents[0][type]': 'id_card_front', 'documents[0][file]': '@/path/to/file.jpg' },
+                'POST /api/v1/user/kyc/documents': { document_type: 'passport_document', document: '@/path/to/passport.pdf' },
+                'POST /api/v1/user/loan-applications': { account_id: 'uuid-of-loan-repay-account', loan_product_id: 'uuid-of-product', requested_amount: 50000, requested_tenure: 12, repayment_plan: 'monthly' },
+                'PATCH /api/v1/user/customer-profile': { first_name: 'John', last_name: 'Doe', date_of_birth: '1990-01-15', employment_status: 'employed', monthly_income: 100000 },
+            };
+            
+            const key = `${method} ${path}`;
+            if (payloads[key]) return payloads[key];
+            
+            // Pattern-based defaults
+            if (path.includes('collateral') && (method === 'POST' || method === 'PATCH')) {
+                return { document: 'data:application/pdf;base64,JVBERi0xLjQK...', document_type: 'title_deed', description: 'Property title deed' };
+            }
+            if (path.includes('guarantor') && method === 'POST') {
+                return { name: 'Guarantor Name', relationship: 'Friend', phone: '+1234567890', email: 'guarantor@example.com' };
+            }
+            if (path.includes('repay') && method === 'POST') {
+                return { source_account_id: 'uuid-of-wallet', amount: 25000, payment_type: 'partial', reference: 'Monthly repayment' };
+            }
+            if (path.includes('documents') && method === 'POST') {
+                return { type: 'business_plan', file: '@/path/to/file.pdf', description: 'Loan application document' };
+            }
+            if (path.includes('verify') && method === 'PATCH') {
+                return { status: 'verified', notes: 'Document verified successfully' };
+            }
+            if (path.includes('reject') && (method === 'POST' || method === 'PATCH')) {
+                return { reason: 'Document does not meet requirements', notes: 'Please resubmit clearer copy' };
+            }
+            if (method === 'DELETE') {
+                return { reason: 'Document no longer needed' };
+            }
+            
+            return null;
+        }
+
+        function attachEndpointToggles() {
+            document.querySelectorAll('.endpoint').forEach(ep => {
+                if (ep.dataset.toggled) return;
+                ep.dataset.toggled = '1';
+                const info = ep.querySelector('.endpoint-info');
+                const methodEl = ep.querySelector('.method');
+                const pathEl = ep.querySelector('.endpoint-path');
+                if (!info || !methodEl || !pathEl) return;
+
+                const method = methodEl.textContent.trim();
+                const path = pathEl.textContent.trim();
+
+                const btn = document.createElement('button');
+                btn.className = 'toggle-button endpoint-toggle';
+                btn.style.marginTop = '0.1rem';
+                btn.style.padding = '0.3rem 0.5rem';
+                btn.style.fontSize = '0.7rem';
+                btn.textContent = 'Show sample';
+
+                const sample = document.createElement('div');
+                sample.className = 'endpoint-sample hidden';
+
+                let requestLine = `${method} ${path} HTTP/1.1`;
+                let headers = `Host: api.example.com\nAuthorization: Bearer {token}`;
+                let body = null;
+                
+                // Add body for mutations
+                if (method === 'POST' || method === 'PATCH' || method === 'PUT' || method === 'DELETE') {
+                    headers += `\nContent-Type: application/json`;
+                    const payload = getPayloadForEndpoint(method, path);
+                    if (payload) {
+                        body = JSON.stringify(payload, null, 2);
+                    }
+                }
+
+                let html = `<div style="font-weight:bold; margin-bottom:0.05rem; color: #4f46e5; font-size:0.8rem;">REQUEST LINE:</div><pre style="background:#111; padding:0.2rem; margin:0; border-radius:2px; font-size:0.75rem;">${requestLine}</pre><div style="font-weight:bold; margin-top:0.1rem; margin-bottom:0.05rem; color: #4f46e5; font-size:0.8rem;">HEADERS:</div><pre style="background:#111; padding:0.2rem; margin:0; border-radius:2px; font-size:0.75rem;">${headers}</pre>`;
+                if (body) {
+                    html += `<div style="font-weight:bold; margin-top:0.1rem; margin-bottom:0.05rem; color: #4f46e5; font-size:0.8rem;">BODY:</div><pre style="background:#111; padding:0.2rem; margin:0; border-radius:2px; font-size:0.75rem;">${body}</pre>`;
+                }
+
+                sample.innerHTML = html;
+
+                btn.addEventListener('click', () => {
+                    sample.classList.toggle('hidden');
+                    btn.textContent = sample.classList.contains('hidden') ? 'Show sample' : 'Hide sample';
+                });
+
+                info.appendChild(btn);
+                ep.parentNode.insertBefore(sample, ep.nextSibling);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            attachEndpointToggles();
+        });
+    </script>
 </body>
 </html>

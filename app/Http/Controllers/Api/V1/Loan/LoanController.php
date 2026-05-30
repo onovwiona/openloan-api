@@ -8,6 +8,8 @@ use App\Models\LoanApplication;
 use App\Models\LoanApplicationDocument;
 use App\Models\LoanCollateral;
 use App\Models\LoanGuarantor;
+use App\Models\Account;
+use App\Models\KycDocument;
 use App\Models\LoanProduct;
 use App\Models\User;
 use App\Services\Loan\LoanService;
@@ -118,21 +120,35 @@ class LoanController extends Controller
     public function createApplication(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'customer_id' => 'required|uuid|exists:users,id',
+            'customer_id' => 'required|exists:users,id',
             'loan_product_id' => 'required|uuid|exists:loan_products,id',
             'account_id' => 'nullable|uuid|exists:accounts,id',
             'requested_amount' => 'required|numeric|min:1',
             'requested_tenure' => 'required|integer|min:1',
+            'repayment_plan' => 'nullable|in:monthly,weekly,quarterly,annually',
             'monthly_income' => 'nullable|numeric|min:0',
+            'payroll_gross' => 'nullable|numeric|min:0',
+            'payroll_net' => 'nullable|numeric|min:0',
+            'employer_id_number' => 'nullable|string',
             'employment_status' => 'nullable|string',
             'purpose' => 'nullable|string|max:500',
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+            return response()->json(['success' => false, 'message' => 'Validation failed.', 'errors' => $validator->errors()], 422);
         }
 
         try {
+            // Prefer employment data from the customer's employment profile; fall back to request if missing
+            $customer = User::findOrFail($request->customer_id);
+            $employmentProfile = $customer->customerProfile?->employmentProfile;
+
+            $employerIdNumber = $employmentProfile?->employer_id_number ?? $request->input('employer_id_number');
+            $monthlyIncome = $employmentProfile?->monthly_income ?? $request->input('monthly_income');
+            $payrollGross = $employmentProfile?->payroll_gross ?? $request->input('payroll_gross');
+            $payrollNet = $employmentProfile?->payroll_net ?? $request->input('payroll_net');
+            $employmentStatus = $employmentProfile?->employment_status ?? $request->input('employment_status');
+
             $application = $this->loanService->createApplication(
                 $request->customer_id,
                 $request->loan_product_id,
@@ -140,13 +156,17 @@ class LoanController extends Controller
                 $request->requested_tenure,
                 $request->account_id,
                 $request->purpose,
-                $request->monthly_income,
-                $request->employment_status
+                $monthlyIncome,
+                $payrollGross,
+                $payrollNet,
+                $employmentStatus,
+                $employerIdNumber,
+                $request->repayment_plan
             );
 
             return response()->json(['success' => true, 'message' => 'Application created', 'data' => $application], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json(['success' => false, 'errors' => $e->errors()], 422);
+            return response()->json(['success' => false, 'message' => 'Validation failed.', 'errors' => $e->errors()], 422);
         }
     }
 
@@ -162,7 +182,11 @@ class LoanController extends Controller
             'account_id' => 'required|uuid|exists:accounts,id',
             'requested_amount' => 'required|numeric|min:1',
             'requested_tenure' => 'required|integer|min:1',
+            'repayment_plan' => 'nullable|in:monthly,weekly,quarterly,annually',
             'monthly_income' => 'nullable|numeric|min:0',
+            'payroll_gross' => 'nullable|numeric|min:0',
+            'payroll_net' => 'nullable|numeric|min:0',
+            'employer_id_number' => 'nullable|string',
             'employment_status' => 'nullable|string',
             'purpose' => 'nullable|string|max:500',
         ]);
@@ -171,7 +195,7 @@ class LoanController extends Controller
             return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
         }
 
-        // Validate account belongs to user and is LOAN_REPAY type
+        // Validate account belongs to user and is LOAN type
         $account = \App\Models\Account::with('accountType')
             ->where('id', $request->account_id)
             ->where('customer_id', $user->id)
@@ -179,11 +203,20 @@ class LoanController extends Controller
         if (!$account) {
             return response()->json(['success' => false, 'message' => 'Account not found or does not belong to you'], 404);
         }
-        if ($account->accountType->code !== 'LOAN_REPAY') {
-            return response()->json(['success' => false, 'message' => 'Only LOAN_REPAY account type can be used for loan applications'], 422);
+        if ($account->accountType->code !== 'LOAN') {
+            return response()->json(['success' => false, 'message' => 'Only LOAN account type can be used for loan applications'], 422);
         }
 
         try {
+            // Prefer employment data from the authenticated user's employment profile; fall back to request if missing
+            $employmentProfile = $user->customerProfile?->employmentProfile;
+
+            $employerIdNumber = $employmentProfile?->employer_id_number ?? $request->input('employer_id_number');
+            $monthlyIncome = $employmentProfile?->monthly_income ?? $request->input('monthly_income');
+            $payrollGross = $employmentProfile?->payroll_gross ?? $request->input('payroll_gross');
+            $payrollNet = $employmentProfile?->payroll_net ?? $request->input('payroll_net');
+            $employmentStatus = $employmentProfile?->employment_status ?? $request->input('employment_status');
+
             $application = $this->loanService->createApplication(
                 $user->id,
                 $request->loan_product_id,
@@ -191,8 +224,12 @@ class LoanController extends Controller
                 $request->requested_tenure,
                 $request->account_id,
                 $request->purpose,
-                $request->monthly_income,
-                $request->employment_status
+                $monthlyIncome,
+                $payrollGross,
+                $payrollNet,
+                $employmentStatus,
+                $employerIdNumber,
+                $request->repayment_plan
             );
 
             return response()->json(['success' => true, 'message' => 'Application created', 'data' => $application], 201);
@@ -219,6 +256,35 @@ class LoanController extends Controller
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
         }
+    }
+
+    /**
+     * PATCH /loan-applications/{id}/payroll - Admin/Staff update payroll amounts for a loan application
+     */
+    public function updateApplicationPayroll(Request $request, string $id): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'payroll_gross' => 'required|numeric|min:0',
+            'payroll_net' => 'required|numeric|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $application = LoanApplication::findOrFail($id);
+
+        if (!auth()->user()->hasAnyRole(['admin', 'staff'])) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized to update payroll details'], 403);
+        }
+
+        $application->update($validator->validated());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Payroll amounts updated successfully',
+            'data' => $application,
+        ]);
     }
 
     /**
@@ -395,11 +461,37 @@ class LoanController extends Controller
     public function submitApplication(Request $request, string $id): JsonResponse
     {
         $user = $request->user();
-        $application = LoanApplication::where('id', $id)->where('customer_id', $user->id)->firstOrFail();
+        $application = LoanApplication::with(['loanProduct', 'customer.customerProfile', 'guarantors', 'collaterals', 'documents'])
+            ->where('id', $id)
+            ->where('customer_id', $user->id)
+            ->firstOrFail();
+
+        $missingRequirements = $this->checkLoanRequirements($application);
+        if (!empty($missingRequirements)) {
+            $uploadedItems = $this->getUploadedItemsStatus($application);
+            return response()->json([
+                'success' => false,
+                'message' => 'Application cannot be submitted due to missing requirements',
+                'loan_product' => [
+                    'id' => $application->loanProduct->id,
+                    'name' => $application->loanProduct->name,
+                    'code' => $application->loanProduct->code,
+                    'requires_account' => (bool) $application->loanProduct->requires_account,
+                    'requires_guarantor' => (bool) $application->loanProduct->requires_guarantor,
+                    'requires_collateral' => (bool) $application->loanProduct->requires_collateral,
+                    'requires_bank_statement' => (bool) $application->loanProduct->requires_bank_statement,
+                    'requires_proof_income' => (bool) $application->loanProduct->requires_proof_income,
+                    'requires_passport' => (bool) $application->loanProduct->requires_passport,
+                    'min_guarantors' => $application->loanProduct->min_guarantors,
+                ],
+                'uploaded_items' => $uploadedItems,
+                'missing_requirements' => $missingRequirements,
+            ], 422);
+        }
 
         try {
             $application->submit();
-            return response()->json(['success' => true, 'message' => 'Application submitted', 'data' => $application->fresh()]);
+            return response()->json(['success' => true, 'message' => 'Application submitted', 'data' => $application->fresh(['loanProduct', 'customer.customerProfile'])]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
         }
@@ -448,6 +540,14 @@ class LoanController extends Controller
         $application->load(['loanProduct', 'customer.customerProfile', 'guarantors', 'collaterals', 'documents']);
 
         // Check loan product requirements
+        // Ensure employer id number is present on application or profile; copy from the employment profile if available
+        $employmentProfile = $application->customer->customerProfile?->employmentProfile;
+        $profileEmp = $employmentProfile?->employer_id_number ?? null;
+        if (empty($application->employer_id_number) && ! empty($profileEmp)) {
+            $application->update(['employer_id_number' => $profileEmp]);
+            $application->refresh();
+        }
+
         $missingRequirements = $this->checkLoanRequirements($application);
 
         if (!empty($missingRequirements)) {
@@ -497,10 +597,22 @@ class LoanController extends Controller
         $missing = [];
         $product = $application->loanProduct;
         $profile = $application->customer->customerProfile;
+        $employmentProfile = $profile?->employmentProfile;
+
+        $profileTier = $profile->kyc_tier ?? 0;
 
         // Always required: KYC verification
         if ($profile->kyc_status !== 'verified') {
             $missing[] = 'KYC verification required';
+        }
+
+        // Persistent customer KYC tier requirements
+        if ($profileTier < 1) {
+            $missing[] = 'KYC tier 1 is required for all loan applications. Upload and verify at least one persistent KYC document.';
+        }
+
+        if ($this->isGovtLoanProduct($product) && $profileTier < 2) {
+            $missing[] = 'KYC tier 2 is required for government loan products. Upload and verify a government-issued ID combination via persistent customer KYC documents.';
         }
 
         // Always required: BVN
@@ -569,6 +681,36 @@ class LoanController extends Controller
             $missing[] = "Amount must be between {$product->min_amount} and {$product->max_amount} (product requirement)";
         }
 
+        // Employer ID number must be present on submission (can be stored on the employment profile)
+        if (empty($application->employer_id_number) && empty($employmentProfile?->employer_id_number)) {
+            $missing[] = 'Employer ID number is required before submitting this application.';
+        }
+
+        if ($this->requiresEmploymentProfile($product)) {
+            if (! $employmentProfile || $employmentProfile->employment_profile_status !== 'verified') {
+                $missing[] = 'Verified employment profile is required for this loan product.';
+            }
+
+            if ($this->isGovtLoanProduct($product) && strtolower($employmentProfile?->employer_type ?? '') !== 'government') {
+                $missing[] = 'Government loan products require an employer_type of government.';
+            }
+
+            if ($this->isSalaryLoanProduct($product) && strtolower($employmentProfile?->employer_type ?? '') !== 'private') {
+                $missing[] = 'Salary loan products require an employer_type of private.';
+            }
+
+            if ($product->required_employer_type && strtolower($employmentProfile?->employer_type ?? '') !== strtolower($product->required_employer_type)) {
+                $missing[] = 'Employer type must be ' . $product->required_employer_type . ' for this loan product.';
+            }
+
+            if (empty($employmentProfile?->payroll_gross)) {
+                $missing[] = 'Gross payroll amount is required for this loan product.';
+            }
+            if (empty($employmentProfile?->payroll_net)) {
+                $missing[] = 'Net payroll amount is required for this loan product.';
+            }
+        }
+
         // Product-specific: Bank statement requirement
         if ($product->requires_bank_statement) {
             $underReviewBankStatement = $application->documents()
@@ -587,21 +729,40 @@ class LoanController extends Controller
             }
         }
 
-        // Product-specific: Passport requirement
+        // Product-specific: Passport photograph requirement should be satisfied by global customer KYC.
         if ($product->requires_passport) {
-            $underReviewPassport = $application->documents()
-                ->where('document_type', 'passport_photo')
-                ->where('status', 'under_review')
-                ->exists();
-            $verifiedPassport = $application->documents()
-                ->where('document_type', 'passport_photo')
-                ->where('status', 'verified')
-                ->exists();
+            $profileDocuments = $application->customer->customerProfile?->kycDocuments()
+                ->whereIn('document_type', [
+                    KycDocument::TYPE_PASSPORT_PHOTO,
+                    KycDocument::TYPE_PASSPORT_DOCUMENT,
+                ])
+                ->get() ?? collect();
 
-            if (!$underReviewPassport && !$verifiedPassport) {
-                $missing[] = 'Passport photograph required by this product (upload via loan application documents)';
-            } elseif ($underReviewPassport) {
+            $approvedPassport = $profileDocuments->filter(fn (KycDocument $doc) => $doc->verification_status === KycDocument::VERIFICATION_APPROVED);
+            $pendingPassport = $profileDocuments->filter(fn (KycDocument $doc) => $doc->verification_status === KycDocument::VERIFICATION_PENDING);
+            $rejectedPassport = $profileDocuments->filter(fn (KycDocument $doc) => $doc->verification_status === KycDocument::VERIFICATION_REJECTED);
+
+            $hasPassportPhotoApproved = $approvedPassport->where('document_type', KycDocument::TYPE_PASSPORT_PHOTO)->isNotEmpty();
+            $hasPassportDocumentApproved = $approvedPassport->where('document_type', KycDocument::TYPE_PASSPORT_DOCUMENT)->isNotEmpty();
+
+            $loanPassportDocuments = $application->documents()
+                ->whereIn('document_type', ['passport_photograph', 'selfie', 'passport_photo'])
+                ->get();
+            $verifiedLoanPassport = $loanPassportDocuments->where('status', 'verified');
+            $pendingLoanPassport = $loanPassportDocuments->where('status', 'under_review');
+            $rejectedLoanPassport = $loanPassportDocuments->where('status', 'rejected');
+
+            $passportSatisfiedByKyc = $hasPassportPhotoApproved && $hasPassportDocumentApproved;
+            $passportSatisfiedByLoan = $verifiedLoanPassport->isNotEmpty();
+
+            if ($passportSatisfiedByKyc || $passportSatisfiedByLoan) {
+                // requirement satisfied by either persistent KYC passport documents or loan-specific passport document
+            } elseif ($pendingPassport->isNotEmpty() || $pendingLoanPassport->isNotEmpty()) {
                 $missing[] = 'Passport photograph upload under review';
+            } elseif ($rejectedPassport->isNotEmpty() || $rejectedLoanPassport->isNotEmpty()) {
+                $missing[] = 'Passport photograph was rejected; please re-upload it using the correct endpoint.';
+            } else {
+                $missing[] = 'Passport photograph required by this product (upload via customer KYC documents or loan application documents).';
             }
         }
 
@@ -623,7 +784,54 @@ class LoanController extends Controller
             }
         }
 
+        // Product-specific: Cooperative savings account requirement
+        if (!empty($product->required_cooperative_account_type_ids) && is_array($product->required_cooperative_account_type_ids)) {
+            $requiredIds = $product->required_cooperative_account_type_ids;
+            $hasCoopAccount = Account::where('customer_id', $application->customer_id)
+                ->whereIn('account_type_id', $requiredIds)
+                ->where('status', 'active')
+                ->exists();
+
+            if (! $hasCoopAccount) {
+                $missing[] = 'Active cooperative savings account required by this product (one of the product-specific cooperative account types)';
+            }
+        }
+
         return $missing;
+    }
+
+    private function isGovtLoanProduct(LoanProduct $product): bool
+    {
+        return in_array($product->code, [
+            'FEDERAL_GOVT',
+            'STATE_GOVT',
+            'LOCAL_GOVT',
+            'FEDERAL_GOVT_LOAN',
+            'STATE_GOVT_LOAN',
+            'LOCAL_GOVT_LOAN',
+        ], true) || strtolower($product->required_employer_type ?? '') === 'government';
+    }
+
+    private function isSalaryLoanProduct(LoanProduct $product): bool
+    {
+        return in_array($product->code, ['SALARY_LOAN', 'SAL'], true)
+            || strtolower($product->required_employer_type ?? '') === 'private';
+    }
+
+    private function requiresEmploymentProfile(LoanProduct $product): bool
+    {
+        return $product->requires_employment_profile || $this->isGovtLoanProduct($product) || $this->isSalaryLoanProduct($product);
+    }
+
+    private function hasApprovedGovtIdCard(array $approvedTypes): bool
+    {
+        $hasIdCard = in_array(KycDocument::TYPE_ID_CARD_FRONT, $approvedTypes, true)
+            && in_array(KycDocument::TYPE_ID_CARD_BACK, $approvedTypes, true);
+        $hasPassport = in_array(KycDocument::TYPE_PASSPORT_PHOTO, $approvedTypes, true)
+            && in_array(KycDocument::TYPE_PASSPORT_DOCUMENT, $approvedTypes, true);
+        $hasDriverLicense = in_array(KycDocument::TYPE_DRIVERS_LICENSE, $approvedTypes, true);
+
+        return $hasIdCard || $hasPassport || $hasDriverLicense;
     }
 
     /**
@@ -643,6 +851,7 @@ class LoanController extends Controller
         if ($kyc) {
             $uploadedItems['kyc'] = [
                 'status' => $kyc->kyc_status,
+                'tier' => $kyc->kyc_tier,
                 'verified_at' => $kyc->kyc_verified_at,
                 'rejection_reason' => $kyc->rejection_reason ?? null,
             ];
@@ -762,7 +971,7 @@ class LoanController extends Controller
     {
         try {
             $loan = $this->loanService->approveApplication($id);
-            return response()->json(['success' => true, 'message' => 'Loan approved', 'data' => $loan], 201);
+            return response()->json(['success' => true, 'message' => 'Loan application approved successfully', 'data' => $loan], 200);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['success' => false, 'errors' => $e->errors()], 422);
         }
@@ -819,21 +1028,125 @@ class LoanController extends Controller
         }
 
         try {
+            $accountId = $request->account_id;
+
+            if (Auth::user()->hasRole('customer') && $accountId) {
+                $account = Account::where('id', $accountId)
+                    ->where('customer_id', Auth::id())
+                    ->first();
+
+                if (! $account) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Account not found or does not belong to you',
+                    ], 404);
+                }
+            }
+
             $repayment = $this->loanService->recordRepayment(
                 $id,
                 $request->amount,
-                $request->account_id,
+                $accountId,
                 $request->payment_channel,
                 $request->reference
             );
 
-            // Auto-allocate
             $loan = $this->loanService->allocateRepayment($repayment->id);
+            
+            // Post ledger entries for the repayment
+            $this->loanService->postRepaymentLedgerEntries($repayment);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Repayment recorded',
                 'data' => $repayment->load('loan'),
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['success' => false, 'errors' => $e->errors()], 422);
+        }
+    }
+
+    /**
+     * POST /loans/{id}/payoff
+     */
+    public function payoff(Request $request, string $id): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'account_id' => 'nullable|uuid|exists:accounts,id',
+            'payment_channel' => 'nullable|string',
+            'reference' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        if (Auth::user()->hasRole('customer') && $request->account_id) {
+            $account = Account::where('id', $request->account_id)
+                ->where('customer_id', Auth::id())
+                ->first();
+
+            if (! $account) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Account not found or does not belong to you',
+                ], 404);
+            }
+        }
+
+        try {
+            $loan = $this->loanService->payoffLoan(
+                $id,
+                $request->account_id,
+                $request->payment_channel,
+                $request->reference
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Loan payoff processed',
+                'data' => $loan,
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['success' => false, 'errors' => $e->errors()], 422);
+        }
+    }
+
+    /**
+     * POST /loans/{id}/manual-repayment
+     */
+    public function manualRepayment(Request $request, string $id): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'amount' => 'required|numeric|min:1',
+            'account_id' => 'nullable|uuid|exists:accounts,id',
+            'payment_channel' => 'nullable|string',
+            'reference' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        try {
+            $loan = Loan::findOrFail($id);
+            $accountId = $request->account_id ?: $loan->account_id;
+
+            $repayment = $this->loanService->recordRepayment(
+                $id,
+                $request->amount,
+                $accountId,
+                $request->payment_channel,
+                $request->reference,
+                true
+            );
+
+            $loan = $this->loanService->allocateRepayment($repayment->id);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Manual repayment recorded',
+                'data' => $loan,
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['success' => false, 'errors' => $e->errors()], 422);
@@ -1138,7 +1451,7 @@ class LoanController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'document_type' => 'required|string|in:passport_photo,guarantor_form,bank_statement,proof_income',
+            'document_type' => 'required|string|in:guarantor_form,bank_statement,proof_income,passport_photograph,selfie,passport_photo',
             'file' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120', // 5MB
         ]);
 
@@ -1245,7 +1558,7 @@ class LoanController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'document_id' => 'nullable|uuid|exists:loan_application_documents,id',
-            'document_type' => 'nullable|string|in:passport_photo,guarantor_form,bank_statement,proof_income',
+            'document_type' => 'nullable|string|in:guarantor_form,bank_statement,proof_income,passport_photograph,selfie,passport_photo',
             'status' => 'required|in:pending,verified,rejected',
             'rejection_reason' => 'nullable|string|max:255',
         ]);
@@ -1313,7 +1626,7 @@ class LoanController extends Controller
             'document_ids' => 'nullable|array',
             'document_ids.*' => 'uuid|exists:loan_application_documents,id',
             'document_id' => 'nullable|uuid|exists:loan_application_documents,id',
-            'document_type' => 'nullable|string|in:passport_photo,guarantor_form,bank_statement,proof_income',
+            'document_type' => 'nullable|string|in:guarantor_form,bank_statement,proof_income,passport_photograph,selfie,passport_photo',
             'notes' => 'nullable|string|max:1000',
         ]);
 
@@ -1379,7 +1692,7 @@ class LoanController extends Controller
             'document_ids' => 'nullable|array',
             'document_ids.*' => 'uuid|exists:loan_application_documents,id',
             'document_id' => 'nullable|uuid|exists:loan_application_documents,id',
-            'document_type' => 'nullable|string|in:passport_photo,guarantor_form,bank_statement,proof_income',
+            'document_type' => 'nullable|string|in:guarantor_form,bank_statement,proof_income,passport_photograph,selfie,passport_photo',
             'rejection_reason' => 'required|string|max:1000',
             'notes' => 'nullable|string|max:1000',
         ]);
@@ -1446,7 +1759,7 @@ class LoanController extends Controller
             'document_ids' => 'nullable|array',
             'document_ids.*' => 'uuid|exists:loan_application_documents,id',
             'document_id' => 'nullable|uuid|exists:loan_application_documents,id',
-            'document_type' => 'nullable|string|in:passport_photo,guarantor_form,bank_statement,proof_income',
+            'document_type' => 'nullable|string|in:guarantor_form,bank_statement,proof_income,passport_photograph,selfie,passport_photo',
             'notes' => 'nullable|string|max:1000',
         ]);
 
@@ -1866,6 +2179,309 @@ class LoanController extends Controller
             'message' => count($updatedGuarantors) . ' guarantor(s) put under review successfully',
             'data' => $updatedGuarantors,
         ]);
+    }
+
+    // ================== CUSTOMER LOAN REPAYMENT METHODS ==================
+
+    /**
+     * GET /user/loans/{id}/schedules
+     */
+    public function userLoanSchedules(Request $request, string $id): JsonResponse
+    {
+        $user = Auth::user();
+
+        // Verify loan belongs to user
+        $loan = Loan::where('id', $id)
+            ->where('customer_id', $user->id)
+            ->firstOrFail();
+
+        $schedule = $this->loanService->getSchedule($id);
+        return response()->json(['success' => true, 'data' => $schedule]);
+    }
+
+    /**
+     * GET /user/loans/{id}/repayments
+     */
+    public function userLoanRepayments(Request $request, string $id): JsonResponse
+    {
+        $user = Auth::user();
+
+        // Verify loan belongs to user
+        $loan = Loan::where('id', $id)
+            ->where('customer_id', $user->id)
+            ->firstOrFail();
+
+        $repayments = $loan->repayments()
+            ->orderBy('paid_at', 'desc')
+            ->paginate($request->per_page ?? 20);
+
+        return response()->json(['success' => true, 'data' => $repayments]);
+    }
+
+    /**
+     * POST /user/loans/{id}/repayments
+     */
+    public function userLoanRepayment(Request $request, string $id): JsonResponse
+    {
+        $user = Auth::user();
+
+        // Verify loan belongs to user
+        $loan = Loan::where('id', $id)
+            ->where('customer_id', $user->id)
+            ->firstOrFail();
+
+        $validator = Validator::make($request->all(), [
+            'source_account_id' => 'required|uuid|exists:accounts,id',
+            'amount' => 'required|numeric|min:0.01',
+            'payment_type' => 'required|in:partial,payoff',
+            'reference' => 'nullable|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        // Verify source account belongs to user and is a wallet
+        $sourceAccount = Account::where('id', $request->source_account_id)
+            ->where('customer_id', $user->id)
+            ->whereHas('accountType', function ($query) {
+                $query->where('code', 'WAL');
+            })
+            ->first();
+
+        if (!$sourceAccount) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid source account. Must be a wallet account owned by you.'
+            ], 422);
+        }
+
+        // Check sufficient balance
+        $balance = $sourceAccount->balance;
+        if (!$balance || $balance->available_balance < $request->amount) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Insufficient balance in wallet account.'
+            ], 422);
+        }
+
+        try {
+            if ($request->payment_type === 'payoff') {
+                // Calculate payoff amount
+                $payoffAmount = $this->loanService->calculatePayoffAmount($id);
+                $repayment = $this->loanService->recordRepayment(
+                    $id,
+                    $payoffAmount,
+                    $sourceAccount->id,
+                    'wallet',
+                    $request->reference
+                );
+            } else {
+                $repayment = $this->loanService->recordRepayment(
+                    $id,
+                    $request->amount,
+                    $sourceAccount->id,
+                    'wallet',
+                    $request->reference
+                );
+            }
+
+            $loan = $this->loanService->allocateRepayment($repayment->id);
+
+            // Post ledger entries for the repayment
+            $this->loanService->postRepaymentLedgerEntries($repayment);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Loan repayment processed successfully',
+                'data' => $repayment->load('loan')
+            ], 201);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['success' => false, 'errors' => $e->errors()], 422);
+        }
+    }
+
+    /**
+     * GET /user/loans/{id}/payoff-quote
+     */
+    public function userLoanPayoffQuote(Request $request, string $id): JsonResponse
+    {
+        $user = Auth::user();
+
+        // Verify loan belongs to user
+        $loan = Loan::where('id', $id)
+            ->where('customer_id', $user->id)
+            ->firstOrFail();
+
+        $payoffQuote = $this->loanService->getPayoffQuote($id);
+
+        return response()->json(['success' => true, 'data' => $payoffQuote]);
+    }
+
+    /**
+     * POST /user/loans/{id}/payoff
+     */
+    public function userLoanPayoff(Request $request, string $id): JsonResponse
+    {
+        $user = Auth::user();
+
+        // Verify loan belongs to user
+        $loan = Loan::where('id', $id)
+            ->where('customer_id', $user->id)
+            ->firstOrFail();
+
+        $validator = Validator::make($request->all(), [
+            'source_account_id' => 'nullable|uuid|exists:accounts,id',
+            'reference' => 'nullable|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $sourceAccountId = null;
+
+        if ($request->filled('source_account_id')) {
+            // Verify source account belongs to user and is a wallet
+            $sourceAccount = Account::where('id', $request->source_account_id)
+                ->where('customer_id', $user->id)
+                ->whereHas('accountType', function ($query) {
+                    $query->where('code', 'WAL');
+                })
+                ->first();
+
+            if (!$sourceAccount) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid source account. Must be a wallet account owned by you.'
+                ], 422);
+            }
+
+            $sourceAccountId = $sourceAccount->id;
+        }
+
+        try {
+            $loan = $this->loanService->payoffLoan(
+                $id,
+                $sourceAccountId,
+                $sourceAccountId ? 'wallet' : null,
+                $request->reference
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Loan payoff processed',
+                'data' => $loan
+            ], 201);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['success' => false, 'errors' => $e->errors()], 422);
+        }
+    }
+
+    // ================== ADMIN METHODS ==================
+
+    /**
+     * POST /admin/wallets/{walletId}/deposits
+     */
+    public function depositToWallet(Request $request, string $walletId): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'amount' => 'required|numeric|min:0.01',
+            'payment_method' => 'required|string|in:cash,bank_transfer,card,other',
+            'reference' => 'required|string|max:255',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        // Verify wallet exists and is active
+        $wallet = Account::where('id', $walletId)
+            ->whereHas('accountType', function ($query) {
+                $query->where('code', 'WAL');
+            })
+            ->where('status', 'active')
+            ->first();
+
+        if (!$wallet) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Wallet not found or inactive.'
+            ], 404);
+        }
+
+        try {
+            // Credit the wallet
+            $account = app(\App\Services\Account\AccountService::class)->credit(
+                $wallet->id,
+                $request->amount,
+                "Wallet deposit - {$request->payment_method}: {$request->reference}",
+                'wallet_deposit',
+                null
+            );
+
+            // Create a deposit record (you might want to create a Deposit model for this)
+            // For now, we'll just return the updated account
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Wallet deposit processed successfully',
+                'data' => $account
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to process wallet deposit: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * POST /admin/loans/{loanId}/repayments
+     */
+    public function adminLoanRepayment(Request $request, string $loanId): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'amount' => 'required|numeric|min:0.01',
+            'payment_method' => 'required|string|in:cash,bank_transfer,card,other',
+            'external_reference' => 'required|string|max:255',
+            'skip_wallet' => 'boolean',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        try {
+            $repayment = $this->loanService->recordRepayment(
+                $loanId,
+                $request->amount,
+                null, // No source account for direct repayment
+                $request->payment_method,
+                $request->external_reference,
+                true, // Direct to repay account
+                $request->skip_wallet ?? true
+            );
+
+            $loan = $this->loanService->allocateRepayment($repayment->id);
+
+            // Post ledger entries for the repayment
+            $this->loanService->postRepaymentLedgerEntries($repayment);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Loan repayment processed successfully',
+                'data' => $repayment->load('loan')
+            ], 201);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['success' => false, 'errors' => $e->errors()], 422);
+        }
     }
 }
 

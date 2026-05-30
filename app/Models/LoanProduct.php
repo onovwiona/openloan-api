@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
@@ -28,6 +29,8 @@ class LoanProduct extends Model
         'tenure_min_months',
         'tenure_max_months',
         'processing_fee',
+        'service_charge',
+        'form_fee',
         'penalty_rate',
         'insurance_fee',
         'legal_fee',
@@ -39,7 +42,17 @@ class LoanProduct extends Model
         'requires_bank_statement',
         'requires_proof_income',
         'requires_passport',
+        'requires_employment_profile',
+        'required_employer_type',
+        'repayment_schedules',
+        'threshold_amount',
+        'allow_refinance',
+        'allow_topup',
+        'required_cooperative_account_type_ids',
         'active',
+    ];
+    
+    protected $hidden = [
     ];
 
     protected $casts = [
@@ -47,6 +60,9 @@ class LoanProduct extends Model
         'max_amount' => 'decimal:2',
         'interest_rate' => 'decimal:2',
         'processing_fee' => 'decimal:2',
+        'service_charge' => 'decimal:2',
+        'form_fee' => 'decimal:2',
+        'threshold_amount' => 'decimal:2',
         'penalty_rate' => 'decimal:2',
         'insurance_fee' => 'decimal:2',
         'legal_fee' => 'decimal:2',
@@ -54,11 +70,16 @@ class LoanProduct extends Model
         'requires_account' => 'boolean',
         'allow_early_repayment' => 'boolean',
         'requires_guarantor' => 'boolean',
+        'allow_topup' => 'boolean',
         'requires_collateral' => 'boolean',
         'requires_bank_statement' => 'boolean',
         'requires_proof_income' => 'boolean',
         'requires_passport' => 'boolean',
+        'requires_employment_profile' => 'boolean',
         'active' => 'boolean',
+        'repayment_schedules' => 'array',
+        'allow_refinance' => 'boolean',
+        'required_cooperative_account_type_ids' => 'array',
     ];
 
     protected static function boot()
@@ -85,6 +106,19 @@ class LoanProduct extends Model
     public function repaymentAccountType(): BelongsTo
     {
         return $this->belongsTo(AccountType::class, 'repayment_account_type_id');
+    }
+
+    /**
+     * Get required document types for this product
+     */
+    public function requiredDocumentTypes(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            LoanDocumentType::class,
+            'loan_product_document_types',
+            'loan_product_id',
+            'document_type_id'
+        );
     }
 
     /**

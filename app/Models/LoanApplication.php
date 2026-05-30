@@ -22,7 +22,11 @@ class LoanApplication extends Model
         'application_no',
         'requested_amount',
         'requested_tenure',
+        'repayment_plan',
         'monthly_income',
+        'payroll_gross',
+        'payroll_net',
+        'employer_id_number',
         'employment_status',
         'purpose',
         'status',
@@ -35,6 +39,9 @@ class LoanApplication extends Model
     protected $casts = [
         'requested_amount' => 'decimal:2',
         'monthly_income' => 'decimal:2',
+        'payroll_gross' => 'decimal:2',
+        'payroll_net' => 'decimal:2',
+        'employer_id_number' => 'string',
         'submitted_at' => 'datetime',
         'reviewed_at' => 'datetime',
     ];
@@ -139,7 +146,7 @@ class LoanApplication extends Model
             throw new \Exception('Only draft applications can be submitted');
         }
 
-        // Check KYC verification
+        // Check customer-level KYC verification.
         if ($this->customer->customerProfile->kyc_status !== 'verified') {
             throw new \Exception('KYC verification is required before submitting loan application');
         }

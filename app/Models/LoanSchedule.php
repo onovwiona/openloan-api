@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class LoanSchedule extends Model
 {
@@ -46,6 +47,11 @@ class LoanSchedule extends Model
         'paid_at' => 'date',
     ];
 
+    protected $appends = [
+        'principal_outstanding',
+        'interest_outstanding',
+    ];
+
     protected static function boot()
     {
         parent::boot();
@@ -79,5 +85,29 @@ class LoanSchedule extends Model
     public function getRemainingAttribute(): float
     {
         return $this->total_due - $this->amount_paid;
+    }
+
+    /**
+     * Get outstanding principal for this installment
+     */
+    public function getPrincipalOutstandingAttribute(): float
+    {
+        return max(0, $this->principal_due - $this->principal_paid);
+    }
+
+    /**
+     * Get outstanding interest for this installment
+     */
+    public function getInterestOutstandingAttribute(): float
+    {
+        return max(0, $this->interest_due - $this->interest_paid);
+    }
+
+    /**
+     * Get repayment allocations for this schedule
+     */
+    public function allocations(): HasMany
+    {
+        return $this->hasMany(LoanRepaymentAllocation::class, 'schedule_id');
     }
 }

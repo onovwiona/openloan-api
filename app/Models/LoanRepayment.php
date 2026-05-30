@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class LoanRepayment extends Model
 {
@@ -75,5 +76,13 @@ class LoanRepayment extends Model
     public function allocatedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'allocated_by');
+    }
+
+    /**
+     * Get repayment allocations
+     */
+    public function allocations(): HasMany
+    {
+        return $this->hasMany(LoanRepaymentAllocation::class, 'repayment_id');
     }
 }

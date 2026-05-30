@@ -278,7 +278,7 @@
             <div class="accordion-content">
                 <div class="endpoint"><span class="method">GET</span><span class="path">/loans</span><span class="desc">List all loans</span></div>
                 <div class="endpoint"><span class="method">GET</span><span class="path">/loans/{id}</span><span class="desc">Get loan details</span></div>
-                <div class="endpoint"><span class="method">POST</span><span class="path">/loans/{id}/disburse</span><span class="desc">Disburse loan</span></div>
+                <div class="endpoint"><span class="method">POST</span><span class="path">/loans/{id}/disburse</span><span class="desc">Disburse loan, funding wallet first and crediting LOAN_REPAY with loan principal</span></div>
                 <div class="endpoint"><span class="method">POST</span><span class="path">/loans/{id}/repay</span><span class="desc">Record repayment</span></div>
                 <div class="endpoint"><span class="method">GET</span><span class="path">/loans/{id}/schedule</span><span class="desc">Get repayment schedule</span></div>
                 <div class="endpoint"><span class="method">POST</span><span class="path">/loans/{id}/restructure</span><span class="desc">Restructure loan</span></div>
@@ -298,7 +298,6 @@
             </div>
         </div>
     </div>
-
     <!-- Customer -->
     <div class="section">
         <h2>👤 Customer (Self-Service)</h2>

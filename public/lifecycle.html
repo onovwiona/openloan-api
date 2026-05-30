@@ -1285,6 +1285,9 @@
                         <span class="method">POST</span>
                         <span class="path">/api/v1/loans/{loan_id}/disburse</span>
                     </div>
+                    <div class="note">
+                        ℹ️ Disbursement funds the customer's wallet first; LOAN_REPAY account is credited with loan principal to track outstanding balance.
+                    </div>
                     <div class="payload-section">
                         <div class="payload-title">Request Payload:</div>
                         <div class="payload">{

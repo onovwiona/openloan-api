@@ -73,7 +73,7 @@ class ProjectExperienceSeeder extends Seeder
         });
 
         $savingsType = AccountType::where('code', 'SAV')->first();
-        $loanRepayType = AccountType::where('code', 'LOAN_REPAY')->first();
+        $loanRepayType = AccountType::where('code', 'LOAN')->first();
 
         $accountService = app(AccountService::class);
         $loanService = app(LoanService::class);
@@ -86,15 +86,15 @@ class ProjectExperienceSeeder extends Seeder
 
         $accounts = $customers->mapWithKeys(function (User $customer) use ($accountService, $savingsType, $loanRepayType) {
             $savingsAccount = $accountService->createAccount($customer->id, $savingsType->id, "{$customer->first_name} Savings");
-            $loanRepaymentAccount = $accountService->createAccount($customer->id, $loanRepayType->id, "{$customer->first_name} Loan Repayment");
+            $loanAccount = $accountService->createAccount($customer->id, $loanRepayType->id, "{$customer->first_name} Loan");
 
             $accountService->credit($savingsAccount->id, 150000, 'Initial funding', 'seed', null);
-            $accountService->credit($loanRepaymentAccount->id, 50000, 'Loan repayment reserve', 'seed', null);
+            $accountService->credit($loanAccount->id, 50000, 'Loan reserve', 'seed', null, true);
 
             return [
                 $customer->id => [
                     'savings' => $savingsAccount,
-                    'loan_repayment' => $loanRepaymentAccount,
+                    'loan' => $loanAccount,
                 ],
             ];
         });
@@ -129,7 +129,7 @@ class ProjectExperienceSeeder extends Seeder
                 $personalProduct->id,
                 120000,
                 12,
-                $accounts[$customers[0]->id]['loan_repayment']->id,
+                $accounts[$customers[0]->id]['loan']->id,
                 'Small home repair',
                 180000,
                 'employed'
@@ -141,7 +141,7 @@ class ProjectExperienceSeeder extends Seeder
             $repayment = $loanService->recordRepayment(
                 $approvedLoan->id,
                 30000,
-                $accounts[$customers[0]->id]['loan_repayment']->id,
+                $accounts[$customers[0]->id]['loan']->id,
                 'bank',
                 'RFD-001'
             );
@@ -161,7 +161,7 @@ class ProjectExperienceSeeder extends Seeder
             $personalProduct->id,
             80000,
             6,
-            $accounts[$customers[1]->id]['loan_repayment']->id,
+            $accounts[$customers[1]->id]['loan']->id,
             'Education',
             120000,
             'self-employed'
@@ -174,7 +174,7 @@ class ProjectExperienceSeeder extends Seeder
             $personalProduct->id,
             50000,
             6,
-            $accounts[$customers[2]->id]['loan_repayment']->id,
+            $accounts[$customers[2]->id]['loan']->id,
             'Mobile device purchase',
             90000,
             'salaried'

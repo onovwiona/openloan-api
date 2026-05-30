@@ -151,6 +151,74 @@
 
         .back-link:hover { background: var(--accent); color: white; }
 
+        .toggle-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--accent);
+            background: transparent;
+            color: var(--accent);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .toggle-button:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .payload {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+            font-size: 0.95rem;
+            overflow: auto;
+            max-width: 100%;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .payload code, .payload pre {
+            background: #111;
+            color: #f8f8f2;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            margin: 0;
+        }
+
+        .endpoint-sample {
+            background: #111;
+            border: 1px solid var(--border);
+            padding: 0.3rem;
+            margin-top: 0.1rem;
+            border-radius: 3px;
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            overflow: auto;
+            max-width: 100%;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .endpoint-sample pre {
+            background: inherit;
+            color: inherit;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            margin: 0;
+            padding: 0.25rem;
+            line-height: 1.2;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -202,28 +270,36 @@
 
     <h1>⚙️ Admin & Staff Management</h1>
     <p class="subtitle">Complete endpoint reference for admin and staff operations and loan processing</p>
+    <button class="toggle-button sample-toggle" onclick="toggleSamples()">Show sample usage & payloads</button>
 
-    <!-- User Management -->
+    <!-- Customer Reference -->
     <div class="section">
         <div class="section-title">
             <div class="section-number">1</div>
-            <h2>User Management</h2>
+            <h2>Customer Reference</h2>
             <span class="role-badge">Admin • Staff</span>
         </div>
-        <p>View, filter, and manage customer and staff user accounts</p>
+        <p>Access customer-specific accounts, KYC status, and application history by user ID.</p>
         <div class="endpoints">
-            <div class="endpoint get">
+                <div class="endpoint get">
                 <span class="method get">GET</span>
                 <div class="endpoint-info">
-                    <div class="endpoint-path">/api/v1/users</div>
-                    <div class="endpoint-desc">List all users (paginated). Filter by role, status, etc.</div>
+                    <div class="endpoint-path">/api/v1/users/{user}/kyc</div>
+                    <div class="endpoint-desc">View core KYC profile for a specific customer</div>
                 </div>
             </div>
             <div class="endpoint get">
                 <span class="method get">GET</span>
                 <div class="endpoint-info">
-                    <div class="endpoint-path">/api/v1/users/{id}</div>
-                    <div class="endpoint-desc">Get specific user details with roles and profiles</div>
+                    <div class="endpoint-path">/api/v1/users/{user}/loan-applications</div>
+                    <div class="endpoint-desc">List loan applications for a specific customer</div>
+                </div>
+            </div>
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/users/{user}/loan-applications/{application}</div>
+                    <div class="endpoint-desc">Get details for a specific customer's loan application</div>
                 </div>
             </div>
         </div>
@@ -252,18 +328,18 @@
                     <div class="endpoint-desc">Get account details with balance and transactions</div>
                 </div>
             </div>
-            <div class="endpoint get">
-                <span class="method get">GET</span>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
                 <div class="endpoint-info">
-                    <div class="endpoint-path">/api/v1/users/{user}/accounts</div>
-                    <div class="endpoint-desc">List all accounts for specific customer</div>
+                    <div class="endpoint-path">/api/v1/accounts/{account}/credit</div>
+                    <div class="endpoint-desc">Credit a customer account manually (admin only)</div>
                 </div>
             </div>
-            <div class="endpoint get">
-                <span class="method get">GET</span>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
                 <div class="endpoint-info">
-                    <div class="endpoint-path">/api/v1/users/{user}/accounts/{account}</div>
-                    <div class="endpoint-desc">Get specific user account details</div>
+                    <div class="endpoint-path">/api/v1/accounts/{account}/debit</div>
+                    <div class="endpoint-desc">Debit a customer account manually (admin only)</div>
                 </div>
             </div>
         </div>
@@ -333,6 +409,20 @@
                 <div class="endpoint-info">
                     <div class="endpoint-path">/api/v1/loan-products/{id}</div>
                     <div class="endpoint-desc">Get loan product details including requirements</div>
+                </div>
+            </div>
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/loan-products/{loanProduct}/document-types</div>
+                    <div class="endpoint-desc">List required document types for a specific loan product</div>
+                </div>
+            </div>
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/loan-products/{loanProduct}/document-types/{documentType}</div>
+                    <div class="endpoint-desc">Get details for a specific loan product document type</div>
                 </div>
             </div>
         </div>
@@ -433,20 +523,48 @@
                 <span class="method post">POST</span>
                 <div class="endpoint-info">
                     <div class="endpoint-path">/api/v1/users/{user}/loan-applications/{id}/verify</div>
-                    <div class="endpoint-desc">Approve specific user's application</div>
+                    <div class="endpoint-desc">Verify a customer's loan application by ID</div>
                 </div>
             </div>
             <div class="endpoint post">
                 <span class="method post">POST</span>
                 <div class="endpoint-info">
                     <div class="endpoint-path">/api/v1/users/{user}/loan-applications/{id}/reject</div>
-                    <div class="endpoint-desc">Reject specific user's application with reason</div>
+                    <div class="endpoint-desc">Reject a customer's loan application by ID</div>
+                </div>
+            </div>
+            <div class="endpoint patch">
+                <span class="method patch">PATCH</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/loan-applications/{id}/payroll</div>
+                    <div class="endpoint-desc">Update payroll information or deductions for a loan application</div>
+                </div>
+            </div>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/users/{user}/loan-applications/{application}/approve</div>
+                    <div class="endpoint-desc">Approve a user's specific loan application</div>
+                </div>
+            </div>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/users/{user}/loan-applications/{application}/reject</div>
+                    <div class="endpoint-desc">Reject a user's specific loan application with reason</div>
+                </div>
+            </div>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/users/{user}/loan-applications/{application}/disburse</div>
+                    <div class="endpoint-desc">Disburse an approved application for a specific user</div>
                 </div>
             </div>
         </div>
 
         <div class="note">
-            ⚠️ Verification checks: Customer KYC must be 'verified', all required application documents uploaded and verified, amount within product constraints, tenure within product range, loan product requirements met
+            ⚠️ Verification checks: Customer KYC must be 'verified', all required application documents uploaded and verified, amount within product constraints, tenure within product range, loan product requirements met. Note: `repayment_plan` is required for non-government products (government defaults to `monthly`). Employment/payroll fields are sourced from the customer's employment profile where available.
         </div>
     </div>
 
@@ -475,23 +593,8 @@
                     <div class="endpoint-desc">Get loan details with repayment schedule and balance</div>
                 </div>
             </div>
-            <div class="endpoint get">
-                <span class="method get">GET</span>
-                <div class="endpoint-info">
-                    <div class="endpoint-path">/api/v1/users/{user}/loans</div>
-                    <div class="endpoint-desc">View all loans for specific customer</div>
-                </div>
-            </div>
-            <div class="endpoint get">
-                <span class="method get">GET</span>
-                <div class="endpoint-info">
-                    <div class="endpoint-path">/api/v1/users/{user}/loans/{id}</div>
-                    <div class="endpoint-desc">Get specific user loan details</div>
-                </div>
-            </div>
         </div>
 
-        <h3>Loan Operations</h3>
         <div class="endpoints">
             <div class="endpoint post">
                 <span class="method post">POST</span>
@@ -504,7 +607,7 @@
                 <span class="method post">POST</span>
                 <div class="endpoint-info">
                     <div class="endpoint-path">/api/v1/loans/{id}/disburse</div>
-                    <div class="endpoint-desc">Disburse approved loan to customer's LOAN_REPAY account</div>
+                    <div class="endpoint-desc">Disburse approved loan, funding the customer's wallet first; LOAN_REPAY account balance increases with loan principal to track outstanding balance</div>
                 </div>
             </div>
             <div class="endpoint post">
@@ -538,14 +641,72 @@
         </div>
 
         <div class="note">
-            ℹ️ Upon disbursement: Ledger entries created, repayment schedule generated, LOAN_REPAY account credited, referrer receives commission notification
+            ℹ️ Upon disbursement: Ledger entries created, repayment schedule generated, funds credited to wallet first, LOAN_REPAY account credited with loan principal, referrer receives commission notification
+        </div>
+    </div>
+
+    <!-- Wallet & Repayment Management -->
+    <div class="section">
+        <div class="section-title">
+            <div class="section-number">6.5</div>
+            <h2>Wallet Deposits & Direct Loan Repayments</h2>
+            <span class="role-badge">Admin • Staff</span>
+        </div>
+        <p>Manage customer wallet deposits and process direct loan repayments (bypassing wallet validation)</p>
+
+        <h3>Wallet Deposits</h3>
+        <div class="endpoints">
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/admin/wallets/{walletId}/deposits</div>
+                    <div class="endpoint-desc">Deposit funds directly into customer wallet account</div>
+                </div>
+            </div>
+        </div>
+
+        <h3>Direct Loan Repayments</h3>
+        <div class="endpoints">
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/admin/loans/{loanId}/repayments</div>
+                    <div class="endpoint-desc">Process direct loan repayment (cash, bank transfer, card, etc.)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="note warning">
+            ⚠️ Direct repayments bypass wallet balance validation. Use for cash payments, bank transfers, or card transactions.
+        </div>
+        <div class="note info">
+            ℹ️ Wallet deposits credit customer wallet accounts. Direct repayments post directly to loan accounts without wallet deduction.
+        </div>
+        <div class="payload hidden">
+            <span class="payload-label">Sample Wallet Deposit Payload:</span>
+            <pre>{
+  "amount": 100000.00,
+  "payment_method": "cash",
+  "reference": "Cash deposit at branch",
+  "notes": "Customer brought cash for deposit"
+}</pre>
+        </div>
+        <div class="payload hidden">
+            <span class="payload-label">Sample Direct Repayment Payload:</span>
+            <pre>{
+  "amount": 50000.00,
+  "payment_method": "bank_transfer",
+  "external_reference": "BT20241201001",
+  "skip_wallet": true,
+  "notes": "Bank transfer from customer's account"
+}</pre>
         </div>
     </div>
 
     <!-- KYC Management -->
     <div class="section">
         <div class="section-title">
-            <div class="section-number">7</div>
+            <div class="section-number">8</div>
             <h2>KYC & Document Verification</h2>
             <span class="role-badge">Admin • Staff</span>
         </div>
@@ -581,15 +742,68 @@
             <div class="endpoint patch">
                 <span class="method patch">PATCH</span>
                 <div class="endpoint-info">
-                    <div class="endpoint-path">/api/v1/kyc/{profile}/documents/{document_type}/verify</div>
-                    <div class="endpoint-desc">Verify specific KYC document (passport_photo, id_card_front, id_card_back)</div>
+                    <div class="endpoint-path">/api/v1/kyc/{profile}/documents/{documentType}/verify</div>
+                    <div class="endpoint-desc">Verify specific KYC document (passport_document, id_card_front, id_card_back, driver_license, utility_bill, bank_statement, proof_income, payslip_document, employment_letter, employer_id_card)</div>
+                </div>
+            </div>
+        </div>
+
+        <h3>Employment Profile KYC</h3>
+        <div class="endpoints">
+            <div class="endpoint get">
+                <span class="method get">GET</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/users/{user}/kyc/employment-profile</div>
+                    <div class="endpoint-desc">View employment profile and employment documents for a specific customer</div>
+                </div>
+            </div>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/users/{user}/kyc/employment-profile</div>
+                    <div class="endpoint-desc">Create or store employment profile data for a customer's KYC record</div>
                 </div>
             </div>
             <div class="endpoint patch">
                 <span class="method patch">PATCH</span>
                 <div class="endpoint-info">
-                    <div class="endpoint-path">/api/v1/kyc/{profile}/documents/{document_type}/reject</div>
-                    <div class="endpoint-desc">Reject specific KYC document with reason</div>
+                    <div class="endpoint-path">/api/v1/users/{user}/kyc/employment-profile</div>
+                    <div class="endpoint-desc">Update a customer's employment profile details</div>
+                </div>
+            </div>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/users/{user}/kyc/employment-profile/documents</div>
+                    <div class="endpoint-desc">Upload employment KYC documents for a customer</div>
+                </div>
+            </div>
+            <div class="endpoint patch">
+                <span class="method patch">PATCH</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/users/{user}/kyc/employment-profile/documents</div>
+                    <div class="endpoint-desc">Update uploaded employment KYC documents for a customer</div>
+                </div>
+            </div>
+            <div class="endpoint patch">
+                <span class="method patch">PATCH</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/kyc/{profile}/employment-profile/verify</div>
+                    <div class="endpoint-desc">Verify a customer's employment profile documents</div>
+                </div>
+            </div>
+            <div class="endpoint patch">
+                <span class="method patch">PATCH</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/kyc/{profile}/employment-profile/reject</div>
+                    <div class="endpoint-desc">Reject a customer's employment profile documents with reason</div>
+                </div>
+            </div>
+            <div class="endpoint patch">
+                <span class="method patch">PATCH</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/kyc/{profile}/employment-profile/under-review</div>
+                    <div class="endpoint-desc">Mark a customer's employment profile as under review</div>
                 </div>
             </div>
         </div>
@@ -599,24 +813,84 @@
             <div class="endpoint get">
                 <span class="method get">GET</span>
                 <div class="endpoint-info">
-                    <div class="endpoint-path">/api/v1/loan-applications/{application}/documents</div>
-                    <div class="endpoint-desc">View all documents uploaded for specific loan application</div>
+                    <div class="endpoint-path">/api/v1/users/{user}/loan-applications/{application}/documents</div>
+                    <div class="endpoint-desc">View all documents uploaded for a specific customer's loan application</div>
                 </div>
             </div>
             <div class="endpoint patch">
                 <span class="method patch">PATCH</span>
                 <div class="endpoint-info">
-                    <div class="endpoint-path">/api/v1/loan-applications/{application}/documents/{document}/verify</div>
-                    <div class="endpoint-desc">Verify application document (collateral, guarantor notes, etc.)</div>
+                    <div class="endpoint-path">/api/v1/users/{user}/loan-applications/{application}/documents</div>
+                    <div class="endpoint-desc">Update loan application document status in bulk</div>
                 </div>
             </div>
-            <div class="endpoint patch">
-                <span class="method patch">PATCH</span>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
                 <div class="endpoint-info">
-                    <div class="endpoint-path">/api/v1/loan-applications/{application}/documents/{document}/reject</div>
-                    <div class="endpoint-desc">Reject application document with reason</div>
+                    <div class="endpoint-path">/api/v1/users/{user}/loan-applications/{application}/documents/verify</div>
+                    <div class="endpoint-desc">Verify a specific loan application document</div>
                 </div>
             </div>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/users/{user}/loan-applications/{application}/documents/reject</div>
+                    <div class="endpoint-desc">Reject a specific loan application document</div>
+                </div>
+            </div>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/users/{user}/loan-applications/{application}/documents/under-review</div>
+                    <div class="endpoint-desc">Mark a loan application document as under review</div>
+                </div>
+            </div>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/users/{user}/loan-applications/{application}/collaterals/verify</div>
+                    <div class="endpoint-desc">Verify a collateral document for an application</div>
+                </div>
+            </div>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/users/{user}/loan-applications/{application}/collaterals/reject</div>
+                    <div class="endpoint-desc">Reject a collateral document for an application</div>
+                </div>
+            </div>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/users/{user}/loan-applications/{application}/collaterals/under-review</div>
+                    <div class="endpoint-desc">Mark a collateral document as under review</div>
+                </div>
+            </div>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/users/{user}/loan-applications/{application}/guarantors/verify</div>
+                    <div class="endpoint-desc">Verify a guarantor document for an application</div>
+                </div>
+            </div>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/users/{user}/loan-applications/{application}/guarantors/reject</div>
+                    <div class="endpoint-desc">Reject a guarantor document for an application</div>
+                </div>
+            </div>
+            <div class="endpoint post">
+                <span class="method post">POST</span>
+                <div class="endpoint-info">
+                    <div class="endpoint-path">/api/v1/users/{user}/loan-applications/{application}/guarantors/under-review</div>
+                    <div class="endpoint-desc">Mark a guarantor document as under review</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="note info">
+            ℹ️ Admin document review uses customer-specific loan application endpoints under <code>/api/v1/users/{user}/loan-applications/{application}</code>. Core KYC documents are reviewed through <code>/api/v1/kyc</code> and <code>/api/v1/customers/{user}/kyc</code>.
         </div>
 
         <h3>KYC Profile Management</h3>
@@ -662,7 +936,7 @@
     <!-- Customer Profile Management -->
     <div class="section">
         <div class="section-title">
-            <div class="section-number">8</div>
+            <div class="section-number">9</div>
             <h2>Customer Profile Management</h2>
             <span class="role-badge">Admin • Staff</span>
         </div>
@@ -746,5 +1020,111 @@
             Authorization: Bearer {jwt_token}
         </p>
     </div>
+    <script>
+        function toggleSamples() {
+            const elements = document.querySelectorAll('.payload, .endpoint-sample');
+            elements.forEach(el => el.classList.toggle('hidden'));
+            document.querySelectorAll('.sample-toggle').forEach(btn => {
+                btn.textContent = btn.textContent.includes('Show') ? 'Hide sample usage & payloads' : 'Show sample usage & payloads';
+            });
+        }
+
+        function getPayloadForEndpoint(method, path) {
+            const payloads = {
+                'POST /api/v1/account-types': { name: 'Wallet', code: 'WAL', description: 'General purpose wallet account' },
+                'POST /api/v1/loan-products': { name: 'Personal Loan', description: 'Unsecured personal loan', min_amount: 10000, max_amount: 500000, tenure_min_months: 3, tenure_max_months: 36, interest_rate: 15.5, requires_guarantor: false },
+                'POST /api/v1/accounts/{account}/credit': { amount: 50000, reference: 'Manual credit', notes: 'Admin manual credit' },
+                'POST /api/v1/accounts/{account}/debit': { amount: 25000, reference: 'Manual debit', notes: 'Admin manual debit' },
+                'POST /api/v1/loan-applications/{id}/verify': { status: 'approved', notes: 'Application verified and approved' },
+                'POST /api/v1/loan-applications/{id}/reject': { reason: 'Insufficient income documentation', notes: 'Please resubmit income proof' },
+                'POST /api/v1/loans/{id}/disburse': { notes: 'Disbursing approved loan' },
+                'POST /api/v1/loans/{id}/repay': { amount: 50000, payment_method: 'wallet', reference: 'Loan repayment' },
+                'POST /api/v1/loans/{id}/restructure': { new_tenure_months: 24, new_interest_rate: 14.5, reason: 'Customer request' },
+                'POST /api/v1/loans/{id}/writeoff': { reason: 'Bad debt', notes: 'Writing off unpaid loan' },
+                'POST /api/v1/admin/wallets/{walletId}/deposits': { amount: 100000, payment_method: 'cash', reference: 'Cash deposit at branch', notes: 'Customer brought cash' },
+                'POST /api/v1/admin/loans/{loanId}/repayments': { amount: 50000, payment_method: 'bank_transfer', external_reference: 'BT20241201001', notes: 'Bank transfer from customer' },
+                'PATCH /api/v1/kyc/{profile}/verify': { status: 'verified', notes: 'KYC verified successfully' },
+                'PATCH /api/v1/kyc/{profile}/reject': { status: 'rejected', reason: 'Documents do not match identity', notes: 'Resubmit clear documents' },
+                'PATCH /api/v1/kyc/{profile}': { nationality: 'Country', occupation: 'Job title', monthly_income: 100000 },
+                'PATCH /api/v1/customer-profiles/{id}': { first_name: 'John', last_name: 'Doe', employment_status: 'employed', monthly_income: 100000 },
+                'PATCH /api/v1/customer-profiles/{id}/kyc-status': { kyc_status: 'verified' },
+            };
+            
+            const key = `${method} ${path}`;
+            if (payloads[key]) return payloads[key];
+            
+            // Pattern-based defaults
+            if (path.includes('verify') && method === 'PATCH') {
+                return { status: 'verified', notes: 'Document verified successfully' };
+            }
+            if (path.includes('reject') && (method === 'POST' || method === 'PATCH')) {
+                return { reason: 'Document does not meet requirements', notes: 'Please resubmit clearer copy' };
+            }
+            if (path.includes('under-review') && method === 'POST') {
+                return { status: 'under_review', notes: 'Document is under review' };
+            }
+            if (method === 'DELETE') {
+                return { reason: 'No longer needed' };
+            }
+            
+            return null;
+        }
+
+        function attachEndpointToggles() {
+            document.querySelectorAll('.endpoint').forEach(ep => {
+                if (ep.dataset.toggled) return;
+                ep.dataset.toggled = '1';
+                const info = ep.querySelector('.endpoint-info');
+                const methodEl = ep.querySelector('.method');
+                const pathEl = ep.querySelector('.endpoint-path');
+                if (!info || !methodEl || !pathEl) return;
+
+                const method = methodEl.textContent.trim();
+                const path = pathEl.textContent.trim();
+
+                const btn = document.createElement('button');
+                btn.className = 'toggle-button endpoint-toggle';
+                btn.style.marginTop = '0.1rem';
+                btn.style.padding = '0.3rem 0.5rem';
+                btn.style.fontSize = '0.7rem';
+                btn.textContent = 'Show sample';
+
+                const sample = document.createElement('div');
+                sample.className = 'endpoint-sample hidden';
+
+                let requestLine = `${method} ${path} HTTP/1.1`;
+                let headers = `Host: api.example.com\nAuthorization: Bearer {token}`;
+                let body = null;
+                
+                // Add body for mutations
+                if (method === 'POST' || method === 'PATCH' || method === 'PUT' || method === 'DELETE') {
+                    headers += `\nContent-Type: application/json`;
+                    const payload = getPayloadForEndpoint(method, path);
+                    if (payload) {
+                        body = JSON.stringify(payload, null, 2);
+                    }
+                }
+
+                let html = `<div style="font-weight:bold; margin-bottom:0.05rem; color: #8b5cf6; font-size:0.8rem;">REQUEST LINE:</div><pre style="background:#111; padding:0.2rem; margin:0; border-radius:2px; font-size:0.75rem;">${requestLine}</pre><div style="font-weight:bold; margin-top:0.1rem; margin-bottom:0.05rem; color: #8b5cf6; font-size:0.8rem;">HEADERS:</div><pre style="background:#111; padding:0.2rem; margin:0; border-radius:2px; font-size:0.75rem;">${headers}</pre>`;
+                if (body) {
+                    html += `<div style="font-weight:bold; margin-top:0.1rem; margin-bottom:0.05rem; color: #8b5cf6; font-size:0.8rem;">BODY:</div><pre style="background:#111; padding:0.2rem; margin:0; border-radius:2px; font-size:0.75rem;">${body}</pre>`;
+                }
+
+                sample.innerHTML = html;
+
+                btn.addEventListener('click', () => {
+                    sample.classList.toggle('hidden');
+                    btn.textContent = sample.classList.contains('hidden') ? 'Show sample' : 'Hide sample';
+                });
+
+                info.appendChild(btn);
+                ep.parentNode.insertBefore(sample, ep.nextSibling);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            attachEndpointToggles();
+        });
+    </script>
 </body>
 </html>

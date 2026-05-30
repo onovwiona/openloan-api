@@ -19,6 +19,8 @@ class AccountType extends Model
         'code',
         'name',
         'currency',
+        'account_category',
+        'normal_balance',
         'min_balance',
         'max_balance',
         'allow_overdraft',
@@ -26,6 +28,11 @@ class AccountType extends Model
         'accrues_interest',
         'interest_rate',
         'description',
+        'is_customer_visible',
+        'supports_deposit',
+        'supports_withdrawal',
+        'supports_transfer',
+        'requires_kyc',
         'active',
     ];
 
@@ -36,6 +43,11 @@ class AccountType extends Model
         'interest_rate' => 'decimal:2',
         'allow_overdraft' => 'boolean',
         'accrues_interest' => 'boolean',
+        'is_customer_visible' => 'boolean',
+        'supports_deposit' => 'boolean',
+        'supports_withdrawal' => 'boolean',
+        'supports_transfer' => 'boolean',
+        'requires_kyc' => 'boolean',
         'active' => 'boolean',
     ];
 
@@ -71,5 +83,30 @@ class AccountType extends Model
     public function allowsOverdraft(): bool
     {
         return $this->allow_overdraft;
+    }
+
+    public function isCustomerVisible(): bool
+    {
+        return $this->is_customer_visible;
+    }
+
+    public function canDeposit(): bool
+    {
+        return $this->supports_deposit;
+    }
+
+    public function canWithdraw(): bool
+    {
+        return $this->supports_withdrawal;
+    }
+
+    public function canTransfer(): bool
+    {
+        return $this->supports_transfer;
+    }
+
+    public function isLoanAccount(): bool
+    {
+        return $this->account_category === 'LOAN' || $this->code === 'LOAN';
     }
 }

@@ -1,0 +1,819 @@
+{
+  "info": {
+    "name": "OpenDoor Backend API - Full App Experience",
+    "description": "Postman collection covering the full OpenDoor backend API experience from customer self-service to admin/staff workflows.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost/opendoor-backend-api/public/api/v1", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "user_id", "value": "", "type": "string" },
+    { "key": "customer_id", "value": "", "type": "string" },
+    { "key": "application_id", "value": "", "type": "string" },
+    { "key": "loan_id", "value": "", "type": "string" },
+    { "key": "account_id", "value": "", "type": "string" },
+    { "key": "product_id", "value": "", "type": "string" },
+    { "key": "profile_id", "value": "", "type": "string" },
+    { "key": "guarantor_id", "value": "", "type": "string" },
+    { "key": "document_type", "value": "passport_photo", "type": "string" },
+    { "key": "employer_type", "value": "government", "type": "string" },
+    { "key": "employer_computer_id", "value": "EMP12345", "type": "string" },
+    { "key": "payroll_gross", "value": "500000", "type": "string" },
+    { "key": "payroll_net", "value": "450000", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password\",\n  \"password_confirmation\": \"password\"\n}" },
+            "url": { "raw": "{{base_url}}/register", "host": ["{{base_url}}"], "path": ["register"] }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"secret\"\n}" },
+            "url": { "raw": "{{base_url}}/login", "host": ["{{base_url}}"], "path": ["login"] }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/me", "host": ["{{base_url}}"], "path": ["me"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/logout", "host": ["{{base_url}}"], "path": ["logout"] }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/refresh", "host": ["{{base_url}}"], "path": ["refresh"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customer Profile & KYC",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/user/customer-profile", "host": ["{{base_url}}"], "path": ["user", "customer-profile"] }
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"first_name\": \"Test\",\n  \"last_name\": \"User\",\n  \"phone\": \"+1234567890\"\n}" },
+            "url": { "raw": "{{base_url}}/user/customer-profile", "host": ["{{base_url}}"], "path": ["user", "customer-profile"] }
+          }
+        },
+        {
+          "name": "Upload Persistent KYC Core",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "passport_document", "type": "file", "src": [] },
+                { "key": "id_card_front", "type": "file", "src": [] },
+                { "key": "id_card_back", "type": "file", "src": [] },
+                { "key": "driver_license", "type": "file", "src": [] },
+                { "key": "utility_bill", "type": "file", "src": [] }
+              ]
+            },
+            "url": { "raw": "{{base_url}}/user/kyc", "host": ["{{base_url}}"], "path": ["user", "kyc"] }
+          }
+        },
+        {
+          "name": "Upload Passport Document",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": [] } ] },
+            "url": { "raw": "{{base_url}}/user/kyc/passport-document", "host": ["{{base_url}}"], "path": ["user", "kyc", "passport-document"] }
+          }
+        },
+        {
+          "name": "Upload ID Card",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": [] } ] },
+            "url": { "raw": "{{base_url}}/user/kyc/id-card", "host": ["{{base_url}}"], "path": ["user", "kyc", "id-card"] }
+          }
+        },
+        {
+          "name": "Upload Passport Photo (Application-specific)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": [] } ] },
+            "url": { "raw": "{{base_url}}/user/kyc/passport-photo", "host": ["{{base_url}}"], "path": ["user", "kyc", "passport-photo"] }
+          }
+        },
+        {
+          "name": "Upload Guarantor Form (Application-specific)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": [] } ] },
+            "url": { "raw": "{{base_url}}/user/kyc/guarantor-form", "host": ["{{base_url}}"], "path": ["user", "kyc", "guarantor-form"] }
+          }
+        },
+        {
+          "name": "View My KYC",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/user/kyc", "host": ["{{base_url}}"], "path": ["user", "kyc"] }
+          }
+        },
+        {
+          "name": "Get My Employment Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/user/kyc/employment-profiles", "host": ["{{base_url}}"], "path": ["user", "kyc", "employment-profiles"] }
+          }
+        },
+        {
+          "name": "Create Employment Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"employer_type\": \"{{employer_type}}\",\n  \"employer_computer_id\": \"{{employer_computer_id}}\",\n  \"employer_id_number\": \"EMPID12345\",\n  \"employment_status\": \"employed\",\n  \"payroll_gross\": {{payroll_gross}},\n  \"payroll_net\": {{payroll_net}}\n}" },
+            "url": { "raw": "{{base_url}}/user/kyc/employment-profiles", "host": ["{{base_url}}"], "path": ["user", "kyc", "employment-profiles"] }
+          }
+        },
+        {
+          "name": "Update Employment Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"employer_type\": \"{{employer_type}}\",\n  \"employer_computer_id\": \"{{employer_computer_id}}\",\n  \"payroll_gross\": {{payroll_gross}},\n  \"payroll_net\": {{payroll_net}}\n}" },
+            "url": { "raw": "{{base_url}}/user/kyc/employment-profiles", "host": ["{{base_url}}"], "path": ["user", "kyc", "employment-profiles"] }
+          }
+        },
+        {
+          "name": "Upload Employment Documents",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "documents[0][type]", "value": "employer_id_card", "type": "text" },
+                { "key": "documents[0][file]", "type": "file", "src": [] },
+                { "key": "documents[1][type]", "value": "employment_letter", "type": "text" },
+                { "key": "documents[1][file]", "type": "file", "src": [] }
+              ]
+            },
+            "url": { "raw": "{{base_url}}/user/kyc/employment-profiles/documents", "host": ["{{base_url}}"], "path": ["user", "kyc", "employment-profiles", "documents"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customer Accounts",
+      "item": [
+        {
+          "name": "Create Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"account_type_id\": \"{{account_type_id}}\",\n  \"name\": \"Wallet\",\n  \"currency\": \"USD\"\n}" },
+            "url": { "raw": "{{base_url}}/user/accounts", "host": ["{{base_url}}"], "path": ["user", "accounts"] }
+          }
+        },
+        {
+          "name": "List My Accounts",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/user/accounts", "host": ["{{base_url}}"], "path": ["user", "accounts"] }
+          }
+        },
+        {
+          "name": "Get My Account",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/user/accounts/{{account_id}}", "host": ["{{base_url}}"], "path": ["user", "accounts", "{{account_id}}"] }
+          }
+        },
+        {
+          "name": "Account Statement",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/user/accounts/{{account_id}}/statements", "host": ["{{base_url}}"], "path": ["user", "accounts", "{{account_id}}", "statements"] }
+          }
+        },
+        {
+          "name": "Account Transactions",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/user/accounts/{{account_id}}/transactions", "host": ["{{base_url}}"], "path": ["user", "accounts", "{{account_id}}", "transactions"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customer Loan Applications",
+      "item": [
+        {
+          "name": "Get Loan Products",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/loan-products", "host": ["{{base_url}}"], "path": ["loan-products"] }
+          }
+        },
+        {
+          "name": "Create Loan Application",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"loan_product_id\": \"{{product_id}}\",\n  \"requested_amount\": 10000,\n  \"requested_tenure\": 12,\n  \"purpose\": \"Working capital\",\n  \"account_id\": \"{{account_id}}\"\n}" },
+              "body": { "mode": "raw", "raw": "{\n  \"loan_product_id\": \"{{product_id}}\",\n  \"requested_amount\": 10000,\n  \"requested_tenure\": 12,\n  \"repayment_plan\": \"monthly\",\n  \"purpose\": \"Working capital\",\n  \"account_id\": \"{{account_id}}\"\n}" },
+            "url": { "raw": "{{base_url}}/user/loan-applications", "host": ["{{base_url}}"], "path": ["user", "loan-applications"] }
+          }
+        },
+        {
+          "name": "Submit Loan Application",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/loan-applications/{{application_id}}/submit", "host": ["{{base_url}}"], "path": ["loan-applications", "{{application_id}}", "submit"] }
+          }
+        },
+        {
+          "name": "List My Loan Applications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/user/loan-applications", "host": ["{{base_url}}"], "path": ["user", "loan-applications"] }
+          }
+        },
+        {
+          "name": "Get My Loan Application",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/user/loan-applications/{{application_id}}", "host": ["{{base_url}}"], "path": ["user", "loan-applications", "{{application_id}}"] }
+          }
+        },
+        {
+          "name": "Upload Application Collateral",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": [] },
+                { "key": "description", "value": "Collateral document" }
+              ]
+            },
+            "url": { "raw": "{{base_url}}/user/loan-applications/{{application_id}}/collateral", "host": ["{{base_url}}"], "path": ["user", "loan-applications", "{{application_id}}", "collateral"] }
+          }
+        },
+        {
+          "name": "Upload Application Document",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": [] },
+                { "key": "document_type", "value": "id_card" }
+              ]
+            },
+            "url": { "raw": "{{base_url}}/user/loan-applications/{{application_id}}/documents", "host": ["{{base_url}}"], "path": ["user", "loan-applications", "{{application_id}}", "documents"] }
+          }
+        },
+        {
+          "name": "Add Guarantor",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Jane Guarantor\",\n  \"email\": \"jane@example.com\",\n  \"phone\": \"+19876543210\"\n}" },
+            "url": { "raw": "{{base_url}}/user/loan-applications/{{application_id}}/guarantors", "host": ["{{base_url}}"], "path": ["user", "loan-applications", "{{application_id}}", "guarantors"] }
+          }
+        },
+        {
+          "name": "Upload Guarantor Notes",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": { "mode": "formdata", "formdata": [ { "key": "file", "type": "file", "src": [] } ] },
+            "url": { "raw": "{{base_url}}/user/loan-applications/{{application_id}}/guarantors/{{guarantor_id}}/notes", "host": ["{{base_url}}"], "path": ["user", "loan-applications", "{{application_id}}", "guarantors", "{{guarantor_id}}", "notes"] }
+          }
+        },
+        {
+          "name": "List Application Documents",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/user/loan-applications/{{application_id}}/documents", "host": ["{{base_url}}"], "path": ["user", "loan-applications", "{{application_id}}", "documents"] }
+          }
+        },
+        {
+          "name": "List Application Collaterals",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/user/loan-applications/{{application_id}}/collaterals", "host": ["{{base_url}}"], "path": ["user", "loan-applications", "{{application_id}}", "collaterals"] }
+          }
+        },
+        {
+          "name": "List Application Guarantors",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/user/loan-applications/{{application_id}}/guarantors", "host": ["{{base_url}}"], "path": ["user", "loan-applications", "{{application_id}}", "guarantors"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customer Loans",
+      "item": [
+        {
+          "name": "List My Loans",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/user/loans", "host": ["{{base_url}}"], "path": ["user", "loans"] }
+          }
+        },
+        {
+          "name": "Get My Loan",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/user/loans/{{loan_id}}", "host": ["{{base_url}}"], "path": ["user", "loans", "{{loan_id}}"] }
+          }
+        },
+        {
+          "name": "Get Loan Schedule",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/user/loans/{{loan_id}}/schedule", "host": ["{{base_url}}"], "path": ["user", "loans", "{{loan_id}}", "schedule"] }
+          }
+        },
+        {
+          "name": "Repay Loan",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"amount\": 500,\n  \"account_id\": \"{{account_id}}\",\n  \"payment_channel\": \"wallet\",\n  \"reference\": \"repay-001\"\n}" },
+            "url": { "raw": "{{base_url}}/user/loans/{{loan_id}}/repay", "host": ["{{base_url}}"], "path": ["user", "loans", "{{loan_id}}", "repay"] }
+          }
+        },
+        {
+          "name": "Payoff Loan",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"account_id\": \"{{account_id}}\",\n  \"payment_channel\": \"wallet\",\n  \"reference\": \"payoff-001\"\n}" },
+            "url": { "raw": "{{base_url}}/user/loans/{{loan_id}}/payoff", "host": ["{{base_url}}"], "path": ["user", "loans", "{{loan_id}}", "payoff"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin/Staff KYC & Customers",
+      "item": [
+        {
+          "name": "List KYC Profiles",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/kyc", "host": ["{{base_url}}"], "path": ["kyc"] }
+          }
+        },
+        {
+          "name": "Get KYC Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/kyc/{{profile_id}}", "host": ["{{base_url}}"], "path": ["kyc", "{{profile_id}}"] }
+          }
+        },
+        {
+          "name": "Get Customer KYC",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/customers/{{user_id}}/kyc", "host": ["{{base_url}}"], "path": ["customers", "{{user_id}}", "kyc"] }
+          }
+        },
+        {
+          "name": "Verify KYC Document",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"verified\"\n}" },
+            "url": { "raw": "{{base_url}}/kyc/{{profile_id}}/documents/{{document_type}}/verify", "host": ["{{base_url}}"], "path": ["kyc", "{{profile_id}}", "documents", "{{document_type}}", "verify"] }
+          }
+        },
+        {
+          "name": "Verify KYC Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"verified\"\n}" },
+            "url": { "raw": "{{base_url}}/kyc/{{profile_id}}/verify", "host": ["{{base_url}}"], "path": ["kyc", "{{profile_id}}", "verify"] }
+          }
+        },
+        {
+          "name": "Reject KYC Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"rejected\",\n  \"reason\": \"Missing documents\"\n}" },
+            "url": { "raw": "{{base_url}}/kyc/{{profile_id}}/reject", "host": ["{{base_url}}"], "path": ["kyc", "{{profile_id}}", "reject"] }
+          }
+        },
+        {
+          "name": "Delete KYC Profile",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/kyc/{{profile_id}}", "host": ["{{base_url}}"], "path": ["kyc", "{{profile_id}}"] }
+          }
+        },
+        {
+          "name": "List Customer Profiles",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/customer-profiles", "host": ["{{base_url}}"], "path": ["customer-profiles"] }
+          }
+        },
+        {
+          "name": "Get Customer Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/customer-profiles/{{profile_id}}", "host": ["{{base_url}}"], "path": ["customer-profiles", "{{profile_id}}"] }
+          }
+        },
+        {
+          "name": "Change Customer KYC Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"kyc_status\": \"verified\"\n}" },
+            "url": { "raw": "{{base_url}}/customer-profiles/{{profile_id}}/kyc-status", "host": ["{{base_url}}"], "path": ["customer-profiles", "{{profile_id}}", "kyc-status"] }
+          }
+        },
+        {
+          "name": "Verify Employment Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"notes\": \"Employment details confirmed\"\n}" },
+            "url": { "raw": "{{base_url}}/kyc/{{profile_id}}/employment-profile/verify", "host": ["{{base_url}}"], "path": ["kyc", "{{profile_id}}", "employment-profile", "verify"] }
+          }
+        },
+        {
+          "name": "Reject Employment Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"reason\": \"Employment documents incomplete\",\n  \"notes\": \"Request updated payroll documents\"\n}" },
+            "url": { "raw": "{{base_url}}/kyc/{{profile_id}}/employment-profile/reject", "host": ["{{base_url}}"], "path": ["kyc", "{{profile_id}}", "employment-profile", "reject"] }
+          }
+        },
+        {
+          "name": "Mark Employment Profile Under Review",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"notes\": \"Reviewing updated employment documents\"\n}" },
+            "url": { "raw": "{{base_url}}/kyc/{{profile_id}}/employment-profile/under-review", "host": ["{{base_url}}"], "path": ["kyc", "{{profile_id}}", "employment-profile", "under-review"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin/Staff Loan Management",
+      "item": [
+        {
+          "name": "List Loan Applications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/loan-applications", "host": ["{{base_url}}"], "path": ["loan-applications"] }
+          }
+        },
+        {
+          "name": "Get Loan Application",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/loan-applications/{{application_id}}", "host": ["{{base_url}}"], "path": ["loan-applications", "{{application_id}}"] }
+          }
+        },
+        {
+          "name": "Approve User Loan Application",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/users/{{user_id}}/loan-applications/{{application_id}}/approve", "host": ["{{base_url}}"], "path": ["users", "{{user_id}}", "loan-applications", "{{application_id}}", "approve"] }
+          }
+        },
+        {
+          "name": "Reject User Loan Application",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"reason\": \"Missing credit details\"\n}" },
+            "url": { "raw": "{{base_url}}/users/{{user_id}}/loan-applications/{{application_id}}/reject", "host": ["{{base_url}}"], "path": ["users", "{{user_id}}", "loan-applications", "{{application_id}}", "reject"] }
+          }
+        },
+        {
+          "name": "Disburse User Loan Application",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"account_id\": \"{{account_id}}\",\n  \"disbursement_method\": \"bank_transfer\",\n  \"disbursement_reference\": \"TXN-12345\"\n}" },
+            "url": { "raw": "{{base_url}}/users/{{user_id}}/loan-applications/{{application_id}}/disburse", "host": ["{{base_url}}"], "path": ["users", "{{user_id}}", "loan-applications", "{{application_id}}", "disburse"] }
+          }
+        },
+        {
+          "name": "List All Loans",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/loans", "host": ["{{base_url}}"], "path": ["loans"] }
+          }
+        },
+        {
+          "name": "Get Loan Detail",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/loans/{{loan_id}}", "host": ["{{base_url}}"], "path": ["loans", "{{loan_id}}"] }
+          }
+        },
+        {
+          "name": "Approve Loan",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/loans/{{loan_id}}/approve", "host": ["{{base_url}}"], "path": ["loans", "{{loan_id}}", "approve"] }
+          }
+        },
+        {
+          "name": "Reject Loan",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"reason\": \"Failed underwriting\"\n}" },
+            "url": { "raw": "{{base_url}}/loans/{{loan_id}}/reject", "host": ["{{base_url}}"], "path": ["loans", "{{loan_id}}", "reject"] }
+          }
+        },
+        {
+          "name": "Disburse Loan",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"account_id\": \"{{account_id}}\",\n  \"disbursement_method\": \"bank_transfer\",\n  \"disbursement_reference\": \"TXN-56789\"\n}" },
+            "url": { "raw": "{{base_url}}/loans/{{loan_id}}/disburse", "host": ["{{base_url}}"], "path": ["loans", "{{loan_id}}", "disburse"] }
+          }
+        },
+        {
+          "name": "Manual Repayment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"amount\": 1000,\n  \"account_id\": \"{{account_id}}\",\n  \"payment_channel\": \"branch\",\n  \"reference\": \"manual-001\"\n}" },
+            "url": { "raw": "{{base_url}}/loans/{{loan_id}}/manual-repayment", "host": ["{{base_url}}"], "path": ["loans", "{{loan_id}}", "manual-repayment"] }
+          }
+        },
+        {
+          "name": "Loan Payoff",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"account_id\": \"{{account_id}}\",\n  \"payment_channel\": \"branch\",\n  \"reference\": \"payoff-002\"\n}" },
+            "url": { "raw": "{{base_url}}/loans/{{loan_id}}/payoff", "host": ["{{base_url}}"], "path": ["loans", "{{loan_id}}", "payoff"] }
+          }
+        },
+        {
+          "name": "Restructure Loan",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"tenure_months\": 24,\n  \"interest_rate\": 14.0\n}" },
+            "url": { "raw": "{{base_url}}/loans/{{loan_id}}/restructure", "host": ["{{base_url}}"], "path": ["loans", "{{loan_id}}", "restructure"] }
+          }
+        },
+        {
+          "name": "Write Off Loan",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"reason\": \"Unrecoverable debt\"\n}" },
+            "url": { "raw": "{{base_url}}/loans/{{loan_id}}/writeoff", "host": ["{{base_url}}"], "path": ["loans", "{{loan_id}}", "writeoff"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin/Staff Accounts & Products",
+      "item": [
+        {
+          "name": "List Accounts",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/accounts", "host": ["{{base_url}}"], "path": ["accounts"] }
+          }
+        },
+        {
+          "name": "Get Account",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/accounts/{{account_id}}", "host": ["{{base_url}}"], "path": ["accounts", "{{account_id}}"] }
+          }
+        },
+        {
+          "name": "Create Account for User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"customer_id\": \"{{customer_id}}\",\n  \"account_type_id\": \"{{account_type_id}}\",\n  \"name\": \"Loan Repayment\",\n  \"currency\": \"USD\"\n}" },
+            "url": { "raw": "{{base_url}}/users/{{user_id}}/accounts", "host": ["{{base_url}}"], "path": ["users", "{{user_id}}", "accounts"] }
+          }
+        },
+        {
+          "name": "Credit Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"amount\": 1000,\n  \"narration\": \"Test credit\"\n}" },
+            "url": { "raw": "{{base_url}}/accounts/{{account_id}}/credit", "host": ["{{base_url}}"], "path": ["accounts", "{{account_id}}", "credit"] }
+          }
+        },
+        {
+          "name": "Debit Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"amount\": 500,\n  \"narration\": \"Test debit\"\n}" },
+            "url": { "raw": "{{base_url}}/accounts/{{account_id}}/debit", "host": ["{{base_url}}"], "path": ["accounts", "{{account_id}}", "debit"] }
+          }
+        },
+        {
+          "name": "List Account Types",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/account-types", "host": ["{{base_url}}"], "path": ["account-types"] }
+          }
+        },
+        {
+          "name": "Create Account Type",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"code\": \"LOAN_REPAY\",\n  \"name\": \"Loan Repayment\",\n  \"description\": \"Loan repayment tracking account\"\n}" },
+            "url": { "raw": "{{base_url}}/account-types", "host": ["{{base_url}}"], "path": ["account-types"] }
+          }
+        },
+        {
+          "name": "Create Loan Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Small Business Loan\",\n  \"interest_rate\": 14.5,\n  \"max_amount\": 50000,\n  \"min_amount\": 1000,\n  \"term_months\": 12\n}" },
+            "url": { "raw": "{{base_url}}/loan-products", "host": ["{{base_url}}"], "path": ["loan-products"] }
+          }
+        },
+        {
+          "name": "Get Loan Product",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/loan-products/{{product_id}}", "host": ["{{base_url}}"], "path": ["loan-products", "{{product_id}}"] }
+          }
+        }
+      ]
+    }
+  ]
+}

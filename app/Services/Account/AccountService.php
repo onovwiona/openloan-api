@@ -69,13 +69,20 @@ class AccountService
         float $amount,
         string $description,
         ?string $sourceType = null,
-        ?string $sourceId = null
+        ?string $sourceId = null,
+        bool $force = false
     ): Account {
         $account = Account::findOrFail($accountId);
 
         if ($account->status !== 'active') {
             throw ValidationException::withMessages([
                 'status' => "Cannot credit to account with status: {$account->status}"
+            ]);
+        }
+
+        if (! $force && ! $account->accountType->canDeposit()) {
+            throw ValidationException::withMessages([
+                'account_type' => ['This account type does not support deposits.']
             ]);
         }
 
@@ -111,7 +118,8 @@ class AccountService
         float $amount,
         string $description,
         ?string $sourceType = null,
-        ?string $sourceId = null
+        ?string $sourceId = null,
+        bool $force = false
     ): Account {
         $account = Account::findOrFail($accountId);
 
@@ -121,15 +129,21 @@ class AccountService
             ]);
         }
 
+        if (! $force && ! $account->accountType->canWithdraw()) {
+            throw ValidationException::withMessages([
+                'account_type' => ['This account type does not support withdrawals.']
+            ]);
+        }
+
         // Check available balance
         $availableBalance = $account->balance?->available_balance ?? 0;
         $accountType = $account->accountType;
 
-        // Check overdraft limit
+        // Check sufficient balance or overdraft
         $canOverdraft = $accountType->allow_overdraft && 
             ($availableBalance + $accountType->overdraft_limit) >= $amount;
 
-        if (!$canOverdraft) {
+        if ($availableBalance < $amount && !$canOverdraft) {
             throw ValidationException::withMessages([
                 'balance' => "Insufficient funds. Available: {$availableBalance}"
             ]);
@@ -177,6 +191,12 @@ class AccountService
             ]);
         }
 
+        if (! $fromAccount->accountType->canTransfer() || ! $toAccount->accountType->canTransfer()) {
+            throw ValidationException::withMessages([
+                'account_type' => ['One or both account types do not support transfers.']
+            ]);
+        }
+
         return DB::transaction(function () use ($fromAccount, $toAccount, $fromAccountId, $toAccountId, $amount, $description) {
             // Debit from source account
             $this->debit($fromAccountId, $amount, "Transfer out: {$description}");
@@ -187,6 +207,51 @@ class AccountService
             return [
                 'from_account' => $fromAccount->fresh(['balance']),
                 'to_account' => $toAccount->fresh(['balance']),
+            ];
+        });
+    }
+
+    /**
+     * Move funds between accounts, forcing destination credit when needed
+     */
+    public function moveFunds(
+        string $fromAccountId,
+        string $toAccountId,
+        float $amount,
+        string $description,
+        ?string $sourceType = null,
+        ?string $sourceId = null
+    ): array {
+        $fromAccount = Account::findOrFail($fromAccountId);
+        $toAccount = Account::findOrFail($toAccountId);
+
+        if ($fromAccount->status !== 'active' || $toAccount->status !== 'active') {
+            throw ValidationException::withMessages([
+                'status' => 'Both accounts must be active for fund movement'
+            ]);
+        }
+
+        return DB::transaction(function () use ($fromAccountId, $toAccountId, $amount, $description, $sourceType, $sourceId) {
+            $this->debit(
+                $fromAccountId,
+                $amount,
+                "Move funds out: {$description}",
+                $sourceType,
+                $sourceId
+            );
+
+            $this->credit(
+                $toAccountId,
+                $amount,
+                "Move funds in: {$description}",
+                $sourceType,
+                $sourceId,
+                true
+            );
+
+            return [
+                'from_account' => Account::findOrFail($fromAccountId)->fresh(['balance']),
+                'to_account' => Account::findOrFail($toAccountId)->fresh(['balance']),
             ];
         });
     }
@@ -356,7 +421,19 @@ class AccountService
     {
         $balance = AccountBalance::where('account_id', $accountId)
             ->latest()
-            ->firstOrFail();
+            ->first();
+
+        if (! $balance) {
+            $balance = AccountBalance::create([
+                'id' => (string) \Illuminate\Support\Str::uuid(),
+                'account_id' => $accountId,
+                'available_balance' => 0,
+                'ledger_balance' => 0,
+                'hold_balance' => 0,
+                'uncleared_balance' => 0,
+                'as_at' => now(),
+            ]);
+        }
 
         if ($type === 'credit') {
             $balance->update([
@@ -376,7 +453,7 @@ class AccountService
 /**
      * Get or create ledger account for customer deposits
      */
-    protected function getOrCreateCustomerLedgerAccount(Account $account): LedgerAccount
+    public function getOrCreateCustomerLedgerAccount(Account $account): LedgerAccount
     {
         // Look for existing ledger account linked to this account by name
         $existingLedger = LedgerAccount::where('name', 'like', "%Customer Account - {$account->account_no}%")->first();
@@ -417,6 +494,15 @@ class AccountService
      */
     protected function getCashLedgerAccount(): LedgerAccount
     {
-        return LedgerAccount::where('code', '1010')->firstOrFail();
+        return LedgerAccount::firstOrCreate(
+            ['code' => '1010'],
+            [
+                'name' => 'Cash at Bank',
+                'type' => 'asset',
+                'level' => 1,
+                'active' => true,
+                'allow_manual_entry' => true,
+            ]
+        );
     }
 }

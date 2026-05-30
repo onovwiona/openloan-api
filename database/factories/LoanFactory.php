@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Loan;
+use App\Models\LoanApplication;
 use App\Models\User;
 use App\Models\Account;
 use App\Models\LoanProduct;
@@ -28,7 +29,7 @@ class LoanFactory extends Factory
 
         return [
             'id' => fake()->uuid(),
-            'loan_application_id' => fake()->uuid(),
+            'loan_application_id' => LoanApplication::factory(),
             'customer_id' => User::factory(),
             'account_id' => Account::factory(),
             'loan_no' => 'LN' . fake()->unique()->numberBetween(100000, 999999),

@@ -12,6 +12,14 @@ return new class extends Migration
      */
     public function up(): void
     {
+        $driver = DB::getDriverName();
+        
+        if ($driver === 'sqlite') {
+            // SQLite doesn't support MODIFY COLUMN for ENUM, skip or handle differently
+            // For tests, we can assume the column is already varchar/text
+            return;
+        }
+        
         // Update loan_application_documents status enum
         DB::statement("ALTER TABLE loan_application_documents MODIFY COLUMN status ENUM('pending', 'under_review', 'verified', 'rejected') DEFAULT 'pending'");
         
@@ -27,6 +35,13 @@ return new class extends Migration
      */
     public function down(): void
     {
+        $driver = DB::getDriverName();
+        
+        if ($driver === 'sqlite') {
+            // SQLite doesn't support MODIFY COLUMN for ENUM, skip
+            return;
+        }
+        
         // Revert loan_application_documents status enum
         DB::statement("ALTER TABLE loan_application_documents MODIFY COLUMN status ENUM('pending', 'verified', 'rejected') DEFAULT 'pending'");
         

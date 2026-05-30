@@ -1,0 +1,556 @@
+{
+  "info": {
+    "name": "OpenDoor Backend API - Loan Endpoints",
+    "description": "Postman collection for testing all loan-related endpoints in the OpenDoor backend API. Requires JWT authentication.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost/opendoor-backend-api/public/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "loan_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "application_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "account_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"secret\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/login",
+              "host": ["{{base_url}}"],
+              "path": ["login"]
+            }
+          }
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password\",\n  \"password_confirmation\": \"password\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/register",
+              "host": ["{{base_url}}"],
+              "path": ["register"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customer Loan Endpoints",
+      "item": [
+        {
+          "name": "Get Loan Products",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/loan-products",
+              "host": ["{{base_url}}"],
+              "path": ["loan-products"]
+            }
+          }
+        },
+        {
+          "name": "Create My Loan Application",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loan_product_id\": \"uuid\",\n  \"requested_amount\": 10000,\n  \"requested_tenure\": 12,\n  \"repayment_plan\": \"monthly\",\n  \"purpose\": \"Business expansion\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/user/loan-applications",
+              "host": ["{{base_url}}"],
+              "path": ["user", "loan-applications"]
+            }
+          }
+        },
+        {
+          "name": "Submit My Loan Application",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/loan-applications/{{application_id}}/submit",
+              "host": ["{{base_url}}"],
+              "path": ["user", "loan-applications", "{{application_id}}", "submit"]
+            }
+          }
+        },
+        {
+          "name": "Get My Loan Applications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/loan-applications",
+              "host": ["{{base_url}}"],
+              "path": ["user", "loan-applications"]
+            }
+          }
+        },
+        {
+          "name": "Get My Loan Application Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/loan-applications/{{application_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["user", "loan-applications", "{{application_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Upload Collateral",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "description",
+                  "value": "Collateral document"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/user/loan-applications/{{application_id}}/collateral",
+              "host": ["{{base_url}}"],
+              "path": ["user", "loan-applications", "{{application_id}}", "collateral"]
+            }
+          }
+        },
+        {
+          "name": "Upload Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "document_type",
+                  "value": "id_card"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/user/loan-applications/{{application_id}}/documents",
+              "host": ["{{base_url}}"],
+              "path": ["user", "loan-applications", "{{application_id}}", "documents"]
+            }
+          }
+        },
+        {
+          "name": "Add Guarantor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"phone\": \"+1234567890\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/user/loan-applications/{{application_id}}/guarantors",
+              "host": ["{{base_url}}"],
+              "path": ["user", "loan-applications", "{{application_id}}", "guarantors"]
+            }
+          }
+        },
+        {
+          "name": "Get My Loans",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/loans",
+              "host": ["{{base_url}}"],
+              "path": ["user", "loans"]
+            }
+          }
+        },
+        {
+          "name": "Get My Loan Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/loans/{{loan_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["user", "loans", "{{loan_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Loan Schedule",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/loans/{{loan_id}}/schedule",
+              "host": ["{{base_url}}"],
+              "path": ["user", "loans", "{{loan_id}}", "schedule"]
+            }
+          }
+        },
+        {
+          "name": "Repay Loan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 5000,\n  \"account_id\": \"{{account_id}}\",\n  \"payment_channel\": \"wallet\",\n  \"reference\": \"repay-123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/user/loans/{{loan_id}}/repay",
+              "host": ["{{base_url}}"],
+              "path": ["user", "loans", "{{loan_id}}", "repay"]
+            }
+          }
+        },
+        {
+          "name": "Payoff Loan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account_id\": \"{{account_id}}\",\n  \"payment_channel\": \"wallet\",\n  \"reference\": \"payoff-123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/user/loans/{{loan_id}}/payoff",
+              "host": ["{{base_url}}"],
+              "path": ["user", "loans", "{{loan_id}}", "payoff"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin/Staff Loan Endpoints",
+      "item": [
+        {
+          "name": "Get All Loan Applications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/loan-applications",
+              "host": ["{{base_url}}"],
+              "path": ["loan-applications"]
+            }
+          }
+        },
+        {
+          "name": "Get Loan Application Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/loan-applications/{{application_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["loan-applications", "{{application_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get All Loans",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/loans",
+              "host": ["{{base_url}}"],
+              "path": ["loans"]
+            }
+          }
+        },
+        {
+          "name": "Get Loan Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/loans/{{loan_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["loans", "{{loan_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Loan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loan_application_id\": \"{{application_id}}\",\n  \"disbursement_date\": \"2026-05-11\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/loans",
+              "host": ["{{base_url}}"],
+              "path": ["loans"]
+            }
+          }
+        },
+        {
+          "name": "Update Loan",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/loans/{{loan_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["loans", "{{loan_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Loan",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/loans/{{loan_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["loans", "{{loan_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Loan Product Endpoints",
+      "item": [
+        {
+          "name": "Create Loan Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Personal Loan\",\n  \"interest_rate\": 12.5,\n  \"max_amount\": 50000,\n  \"min_amount\": 1000,\n  \"term_months\": 12\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/loan-products",
+              "host": ["{{base_url}}"],
+              "path": ["loan-products"]
+            }
+          }
+        },
+        {
+          "name": "Get Loan Product Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/loan-products/{{product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["loan-products", "{{product_id}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

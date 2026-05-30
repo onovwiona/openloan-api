@@ -22,6 +22,7 @@ class Loan extends Model
         'principal',
         'interest_rate',
         'tenure_months',
+        'repayment_plan',
         'total_interest',
         'total_repayment',
         'disbursed_amount',
@@ -50,6 +51,7 @@ class Loan extends Model
         'maturity_date' => 'date',
         'first_payment_date' => 'date',
         'approved_at' => 'datetime',
+        'repayment_plan' => 'string',
     ];
 
     protected static function boot()
